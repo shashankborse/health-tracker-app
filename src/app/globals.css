@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
+/*
+ * iOS-native palette: grouped-table-view background with cards floating on
+ * top, system accent blue, and the native SF font stack (no webfont load —
+ * this is meant to look like part of iOS, not a themed web page).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f2f7; /* systemGroupedBackground */
+  --card: #ffffff;
+  --foreground: #000000;
+  --muted: #8e8e93; /* systemGray */
+  --border: rgba(60, 60, 67, 0.29); /* separator */
+  --accent: #007aff; /* systemBlue */
+  --danger: #ff3b30; /* systemRed */
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-card: var(--card);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+    sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --card: #1c1c1e;
+    --foreground: #ffffff;
+    --muted: #8e8e93;
+    --border: rgba(84, 84, 88, 0.65);
+    --accent: #0a84ff;
+    --danger: #ff453a;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
