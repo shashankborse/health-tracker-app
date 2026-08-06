@@ -4,7 +4,7 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 // Paths that must stay reachable without a valid session.
 const PUBLIC_PATHS = ["/login", "/api/login"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublic = PUBLIC_PATHS.some(

@@ -7,7 +7,7 @@ web app on iPhone. Full product spec, data model, and phased build plan: see
 ## What's in this Phase 1 skeleton
 
 - Next.js (App Router, TypeScript, Tailwind).
-- A single-password gate (`src/middleware.ts` + `src/lib/auth.ts`) protecting
+- A single-password gate (`src/proxy.ts` + `src/lib/auth.ts`) protecting
   every route except `/login`.
 - Supabase client helpers (`src/lib/supabaseClient.ts` for the browser,
   `src/lib/supabaseServer.ts` for server-side/API-route use).
