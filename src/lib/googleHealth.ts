@@ -6,8 +6,13 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 // Confirmed against the live Google Health API discovery document
 // (https://health.googleapis.com/$discovery/rest?version=v4) rather than
 // guessed — this API is too new to assume anything about.
+//
+// drive.file is deliberately NOT included here. health.googleapis.com
+// rejects any access token whose scope set includes anything outside its
+// own recognized scopes (confirmed live: a token that also carried
+// drive.file got a 403 DISALLOWED_OAUTH_SCOPES on every Health API call).
+// Drive access needs its own separate OAuth grant/token — see Phase 3.7.
 export const GOOGLE_HEALTH_SCOPES = [
-  "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
   "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
   "https://www.googleapis.com/auth/googlehealth.sleep.readonly",
