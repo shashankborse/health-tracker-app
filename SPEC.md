@@ -126,6 +126,7 @@ No hard external deadline — pacing is up to the user, but a sensible build ord
 4. **Nutrition core**: food database seeding (Open Food Facts + CoFID import + manual restaurant entries), meal-level logging, quick-add staples.
 5. **Smart features**: readiness-score engine (once baseline data exists), progressive-overload engine (strength and running), dynamic nutrition targets.
 6. **Polish**: PWA installability, the deferred weight-log Web Push reminder, trend/correlation dashboards, CSV export.
+7. **Design polish**: a holistic pass across every screen built in Phases 1–6, once all features exist — visual hierarchy, spacing/typography consistency, micro-interactions and transitions, and refining the iOS-native look (established in Phase 2) into something that reads as genuinely Apple-made rather than merely "styled like iOS." Deliberately last, not mixed into Phase 6, since it needs the full app surface to review holistically rather than polishing screens piecemeal as they're first built.
 
 ---
 
