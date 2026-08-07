@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 
 const WIDTH = 320;
-const HEIGHT = 160;
 const PADDING = 20;
 
 export type TrendPoint = { date: string; value: number };
@@ -19,13 +18,16 @@ export default function InteractiveTrendChart({
   points,
   unit,
   color = "var(--accent)",
+  height = 160,
 }: {
   points: TrendPoint[];
   unit: string;
   color?: string;
+  height?: number;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const HEIGHT = height;
 
   if (points.length < 2) return null;
 

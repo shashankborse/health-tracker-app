@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type SleepSession = {
   id: string;
   end_time: string;
@@ -21,9 +23,10 @@ export default function SleepSessionsList({ sessions }: { sessions: SleepSession
       <p className="mb-3 text-sm font-semibold">Sleep</p>
       <div className="flex flex-col gap-3">
         {sessions.map((s) => (
-          <div
+          <Link
             key={s.id}
-            className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
+            href={`/health/sleep/${s.id}`}
+            className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0 active:opacity-60"
             style={{ borderColor: "var(--border)" }}
           >
             <div>
@@ -39,8 +42,13 @@ export default function SleepSessionsList({ sessions }: { sessions: SleepSession
                 {formatMinutes(s.light_minutes)}
               </p>
             </div>
-            <p className="text-base font-semibold">{formatMinutes(s.total_minutes)}</p>
-          </div>
+            <div className="flex items-center gap-2">
+              <p className="text-base font-semibold">{formatMinutes(s.total_minutes)}</p>
+              <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </div>
+          </Link>
         ))}
       </div>
     </div>

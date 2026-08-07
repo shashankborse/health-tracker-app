@@ -116,12 +116,14 @@ export default async function HealthPage({
             unit="steps"
             points={steps.map((s) => ({ date: s.entry_date, value: s.count }))}
             color="#34c759"
+            href="/health/steps"
           />
           <MetricTrendCard
             title="Resting heart rate"
             unit="bpm"
             points={restingHeartRate.map((r) => ({ date: r.entry_date, value: r.beats_per_minute }))}
             color="#ff3b30"
+            href="/health/resting_heart_rate"
           />
           <MetricTrendCard
             title="Heart rate variability"
@@ -129,24 +131,28 @@ export default async function HealthPage({
             points={hrv
               .filter((h) => h.average_ms != null)
               .map((h) => ({ date: h.entry_date, value: h.average_ms as number }))}
+            href="/health/hrv"
           />
           <MetricTrendCard
             title="Respiratory rate"
             unit="br/min"
             points={respiratoryRate.map((r) => ({ date: r.entry_date, value: r.breaths_per_minute }))}
             color="#ff9500"
+            href="/health/respiratory_rate"
           />
           <MetricTrendCard
             title="Blood oxygen (SpO2)"
             unit="%"
             points={spo2.map((s) => ({ date: s.entry_date, value: s.average_pct }))}
             color="#5ac8fa"
+            href="/health/spo2"
           />
           <MetricTrendCard
             title="Skin temperature"
             unit="°C"
             points={skinTemperature.map((t) => ({ date: t.entry_date, value: t.nightly_temperature_c }))}
             color="#af52de"
+            href="/health/skin_temperature"
           />
           <SleepSessionsList sessions={sleepSessions} />
         </>
