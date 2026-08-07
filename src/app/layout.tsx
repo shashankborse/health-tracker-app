@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Health Tracker",
   description: "Personal health, workout, and nutrition tracker.",
+  verification: {
+    google: "qivZs1TP9DLeIA8beUvy-so-ozP_wwgiE629dLtnyrI",
+  },
 };
 
 // device-width, no pinch-zoom, and viewportFit "cover" so safe-area-inset-*
