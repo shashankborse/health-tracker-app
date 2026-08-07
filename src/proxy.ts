@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
-// Paths that must stay reachable without a valid session.
-const PUBLIC_PATHS = ["/login", "/api/login"];
+// Paths that must stay reachable without a valid session. /privacy and
+// /terms specifically need to be readable by Google's OAuth verification
+// reviewers, who won't have (and shouldn't need) the app password.
+const PUBLIC_PATHS = ["/login", "/api/login", "/privacy", "/terms"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
