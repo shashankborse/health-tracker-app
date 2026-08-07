@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PlanDay, PlanExercise, ExerciseCategory, LogType } from "@/lib/types";
 import ExerciseCard from "./ExerciseCard";
+import RunLogger from "./RunLogger";
+
+function todayLocalISODate() {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
 
 const CATEGORY_ORDER: ExerciseCategory[] = ["warmup", "main", "cooldown"];
 const CATEGORY_LABELS: Record<ExerciseCategory, string> = {
@@ -26,6 +33,19 @@ export default function WorkoutDayClient({
 }) {
   const [exercises, setExercises] = useState(initialExercises);
   const [editMode, setEditMode] = useState(false);
+  const sessionIdRef = useRef<string | null>(null);
+
+  async function ensureSessionId(): Promise<string> {
+    if (sessionIdRef.current) return sessionIdRef.current;
+    const res = await fetch("/api/workouts/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan_day_id: day.id, session_date: todayLocalISODate() }),
+    });
+    const { session } = await res.json();
+    sessionIdRef.current = session.id;
+    return session.id;
+  }
 
   function byCategory(cat: ExerciseCategory) {
     return exercises.filter((e) => e.category === cat).sort((a, b) => a.sort_order - b.sort_order);
@@ -99,6 +119,10 @@ export default function WorkoutDayClient({
         </div>
       )}
 
+      {day.day_type === "running" && !editMode && (
+        <RunLogger ensureSessionId={ensureSessionId} />
+      )}
+
       {CATEGORY_ORDER.map((cat) => {
         const items = byCategory(cat);
         if (items.length === 0 && !editMode) return null;
@@ -114,6 +138,8 @@ export default function WorkoutDayClient({
                 editMode={editMode}
                 isFirst={i === 0}
                 isLast={i === items.length - 1}
+                enableLogData
+                ensureSessionId={ensureSessionId}
                 onMove={(dir) => handleMove(pe, dir)}
                 onDelete={() => handleDelete(pe.id)}
                 onUpdated={handleUpdated}

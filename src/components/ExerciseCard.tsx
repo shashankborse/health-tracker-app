@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { PlanExercise } from "@/lib/types";
 import VideoModal from "./VideoModal";
+import LogDataPanel from "./LogDataPanel";
 
 function formatTarget(pe: PlanExercise): string {
   if (pe.log_type === "main_lift") {
@@ -25,6 +26,7 @@ export default function ExerciseCard({
   isLast,
   enableLogData = false,
   enableViewProgress = false,
+  ensureSessionId,
   onMove,
   onDelete,
   onUpdated,
@@ -35,6 +37,7 @@ export default function ExerciseCard({
   isLast: boolean;
   enableLogData?: boolean;
   enableViewProgress?: boolean;
+  ensureSessionId?: () => Promise<string>;
   onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
   onUpdated: (updated: PlanExercise) => void;
@@ -42,6 +45,7 @@ export default function ExerciseCard({
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [logging, setLogging] = useState(false);
   const exercise = planExercise.exercises;
 
   return (
@@ -122,6 +126,7 @@ export default function ExerciseCard({
         <div className="mt-3 flex gap-2">
           <button
             disabled={!enableLogData}
+            onClick={() => setLogging((v) => !v)}
             className={ACTION_BUTTON}
             style={{
               backgroundColor: "var(--accent)",
@@ -160,6 +165,14 @@ export default function ExerciseCard({
             onUpdated(updated);
             setEditing(false);
           }}
+        />
+      )}
+
+      {logging && ensureSessionId && (
+        <LogDataPanel
+          planExercise={planExercise}
+          ensureSessionId={ensureSessionId}
+          onDone={() => setLogging(false)}
         />
       )}
 
