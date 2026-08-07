@@ -3,15 +3,17 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
 // Paths that must stay reachable without a valid session. /privacy and
 // /terms specifically need to be readable by Google's OAuth verification
-// reviewers, who won't have (and shouldn't need) the app password.
+// reviewers, who won't have (and shouldn't need) the app password. "/" is
+// the OAuth-verification "home page" — it explains the app and forwards
+// signed-in visitors to /home itself, so it must not redirect to /login.
 const PUBLIC_PATHS = ["/login", "/api/login", "/privacy", "/terms"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isPublic = PUBLIC_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  );
+  const isPublic =
+    pathname === "/" ||
+    PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   if (isPublic) {
     return NextResponse.next();
   }

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(loginUrl, { status: 303 });
   }
 
-  const redirectTo = request.nextUrl.searchParams.get("from") || "/";
+  const redirectTo = request.nextUrl.searchParams.get("from") || "/home";
   const response = NextResponse.redirect(new URL(redirectTo, request.url), {
     status: 303,
   });

@@ -27,7 +27,7 @@ const strokeIcon = (path: string, active: boolean) => (
 
 const TABS: Tab[] = [
   {
-    href: "/",
+    href: "/home",
     label: "Home",
     icon: (active) =>
       strokeIcon("M4 11.5 12 4l8 7.5M6 10v9h12v-9", active),
