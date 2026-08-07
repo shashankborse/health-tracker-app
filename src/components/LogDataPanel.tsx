@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { PlanExercise } from "@/lib/types";
 import RepTally from "./RepTally";
+import { postWithQueue } from "@/lib/offlineQueue";
 
 function parseFirstNumber(text: string | null, fallback: number): number {
   if (!text) return fallback;
@@ -44,25 +45,30 @@ function MainLiftLogger({
   const [weight, setWeight] = useState("");
   const [rpe, setRpe] = useState("7");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const setNumber = confirmed.length + 1;
   const allDone = confirmed.length >= totalSets;
 
   async function handleConfirm() {
     setSaving(true);
-    const sessionId = await ensureSessionId();
-    await fetch("/api/workouts/logs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        plan_exercise_id: planExercise.id,
-        client_id: crypto.randomUUID(),
-        set_number: setNumber,
-        actual_reps: reps,
-        weight_kg: weight ? Number(weight) : null,
-        rpe: Number(rpe),
-      }),
+    setError(null);
+    let sessionId: string;
+    try {
+      sessionId = await ensureSessionId();
+    } catch {
+      setSaving(false);
+      setError("Couldn't start today's session — check your connection and try again.");
+      return;
+    }
+    await postWithQueue("/api/workouts/logs", {
+      session_id: sessionId,
+      plan_exercise_id: planExercise.id,
+      client_id: crypto.randomUUID(),
+      set_number: setNumber,
+      actual_reps: reps,
+      weight_kg: weight ? Number(weight) : null,
+      rpe: Number(rpe),
     });
     setSaving(false);
     setConfirmed((prev) => [...prev, { setNumber, reps, weight, rpe }]);
@@ -91,6 +97,11 @@ function MainLiftLogger({
         </div>
       ) : (
         <>
+          {error && (
+            <p className="text-center text-sm font-medium" style={{ color: "var(--danger)" }}>
+              {error}
+            </p>
+          )}
           <p className="text-center text-sm font-semibold" style={{ color: "var(--muted)" }}>
             Set {setNumber} of {totalSets}
           </p>
@@ -154,22 +165,27 @@ function SingleEntryLogger({
   const [value, setValue] = useState(defaultValue);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleConfirm() {
     setSaving(true);
-    const sessionId = await ensureSessionId();
-    await fetch("/api/workouts/logs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        plan_exercise_id: planExercise.id,
-        client_id: crypto.randomUUID(),
-        set_number: 1,
-        actual_reps: isReps ? value : null,
-        duration_seconds: planExercise.log_type === "duration" ? value : null,
-        hold_time_seconds: planExercise.log_type === "hold_time" ? value : null,
-      }),
+    setError(null);
+    let sessionId: string;
+    try {
+      sessionId = await ensureSessionId();
+    } catch {
+      setSaving(false);
+      setError("Couldn't start today's session — check your connection and try again.");
+      return;
+    }
+    await postWithQueue("/api/workouts/logs", {
+      session_id: sessionId,
+      plan_exercise_id: planExercise.id,
+      client_id: crypto.randomUUID(),
+      set_number: 1,
+      actual_reps: isReps ? value : null,
+      duration_seconds: planExercise.log_type === "duration" ? value : null,
+      hold_time_seconds: planExercise.log_type === "hold_time" ? value : null,
     });
     setSaving(false);
     setSaved(true);
@@ -188,6 +204,11 @@ function SingleEntryLogger({
 
   return (
     <div className="mt-3 flex flex-col items-center gap-3 border-t pt-3" style={{ borderColor: "var(--border)" }}>
+      {error && (
+        <p className="text-center text-sm font-medium" style={{ color: "var(--danger)" }}>
+          {error}
+        </p>
+      )}
       <RepTally value={value} onChange={setValue} label={isReps ? "Reps" : "Seconds"} />
       <button
         onClick={handleConfirm}

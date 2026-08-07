@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { PlanExercise } from "@/lib/types";
 import VideoModal from "./VideoModal";
 import LogDataPanel from "./LogDataPanel";
+import ViewProgressModal from "./ViewProgressModal";
 
 function formatTarget(pe: PlanExercise): string {
   if (pe.log_type === "main_lift") {
@@ -46,6 +47,7 @@ export default function ExerciseCard({
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [logging, setLogging] = useState(false);
+  const [viewingProgress, setViewingProgress] = useState(false);
   const exercise = planExercise.exercises;
 
   return (
@@ -138,6 +140,7 @@ export default function ExerciseCard({
           </button>
           <button
             disabled={!enableViewProgress}
+            onClick={() => setViewingProgress(true)}
             className={ACTION_BUTTON}
             style={{
               backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)",
@@ -178,6 +181,14 @@ export default function ExerciseCard({
 
       {showVideo && exercise.video_url && (
         <VideoModal videoUrl={exercise.video_url} title={exercise.name} onClose={() => setShowVideo(false)} />
+      )}
+
+      {viewingProgress && (
+        <ViewProgressModal
+          exerciseId={planExercise.exercise_id}
+          exerciseName={exercise.name}
+          onClose={() => setViewingProgress(false)}
+        />
       )}
     </div>
   );

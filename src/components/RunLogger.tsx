@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postWithQueue } from "@/lib/offlineQueue";
 
 export default function RunLogger({
   ensureSessionId,
@@ -10,23 +11,28 @@ export default function RunLogger({
   const [expanded, setExpanded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [distance, setDistance] = useState("");
   const [minutes, setMinutes] = useState("");
   const [rpe, setRpe] = useState("7");
 
   async function handleConfirm() {
     setSaving(true);
-    const sessionId = await ensureSessionId();
-    await fetch("/api/workouts/run-logs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        client_id: crypto.randomUUID(),
-        distance_km: distance ? Number(distance) : null,
-        duration_seconds: minutes ? Math.round(Number(minutes) * 60) : null,
-        rpe: Number(rpe),
-      }),
+    setError(null);
+    let sessionId: string;
+    try {
+      sessionId = await ensureSessionId();
+    } catch {
+      setSaving(false);
+      setError("Couldn't start today's session — check your connection and try again.");
+      return;
+    }
+    await postWithQueue("/api/workouts/run-logs", {
+      session_id: sessionId,
+      client_id: crypto.randomUUID(),
+      distance_km: distance ? Number(distance) : null,
+      duration_seconds: minutes ? Math.round(Number(minutes) * 60) : null,
+      rpe: Number(rpe),
     });
     setSaving(false);
     setSaved(true);
@@ -56,6 +62,11 @@ export default function RunLogger({
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-card p-4 shadow-sm">
+      {error && (
+        <p className="text-center text-sm font-medium" style={{ color: "var(--danger)" }}>
+          {error}
+        </p>
+      )}
       <div className="flex gap-2">
         <div className="flex-1">
           <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Distance (km)</label>

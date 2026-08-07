@@ -37,12 +37,22 @@ export default function WorkoutDayClient({
 
   async function ensureSessionId(): Promise<string> {
     if (sessionIdRef.current) return sessionIdRef.current;
+
+    const cacheKey = `session:${day.id}:${todayLocalISODate()}`;
+    const cached = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
+    if (cached) {
+      sessionIdRef.current = cached;
+      return cached;
+    }
+
     const res = await fetch("/api/workouts/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan_day_id: day.id, session_date: todayLocalISODate() }),
     });
+    if (!res.ok) throw new Error("Failed to create session");
     const { session } = await res.json();
+    localStorage.setItem(cacheKey, session.id);
     sessionIdRef.current = session.id;
     return session.id;
   }
@@ -139,6 +149,7 @@ export default function WorkoutDayClient({
                 isFirst={i === 0}
                 isLast={i === items.length - 1}
                 enableLogData
+                enableViewProgress
                 ensureSessionId={ensureSessionId}
                 onMove={(dir) => handleMove(pe, dir)}
                 onDelete={() => handleDelete(pe.id)}
