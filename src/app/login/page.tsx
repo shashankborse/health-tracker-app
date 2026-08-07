@@ -56,6 +56,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         >
           Log in
         </button>
+
+        <p className="mt-5 text-center text-xs" style={{ color: "var(--muted)" }}>
+          <a href="/privacy" style={{ color: "var(--accent)" }}>Privacy Policy</a>
+          {" · "}
+          <a href="/terms" style={{ color: "var(--accent)" }}>Terms of Service</a>
+        </p>
       </form>
     </main>
   );

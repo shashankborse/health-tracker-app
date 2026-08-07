@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
+import WeekStrip from "./WeekStrip";
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
   strength: "Strength",
@@ -37,6 +38,7 @@ export default function WorkoutsListClient({
   }, [initialDays]);
 
   const sorted = [...days].sort((a, b) => a.sort_order - b.sort_order);
+  const todayDayOfWeek = new Date().getDay();
 
   async function handleMove(day: PlanDay, direction: "up" | "down") {
     const idx = sorted.findIndex((d) => d.id === day.id);
@@ -106,11 +108,17 @@ export default function WorkoutsListClient({
         </button>
       </div>
 
+      <WeekStrip days={days} />
+
       <div className="flex flex-col gap-3">
         {sorted.map((day, i) => {
           const count = exerciseCounts[day.id] ?? 0;
+          const isToday = day.day_of_week === todayDayOfWeek;
           const card = (
-            <div className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm">
+            <div
+              className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm"
+              style={isToday ? { boxShadow: "0 0 0 1.5px var(--accent)" } : undefined}
+            >
               <span
                 className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: DAY_TYPE_COLORS[day.day_type] }}
@@ -124,7 +132,14 @@ export default function WorkoutsListClient({
                     style={{ borderColor: "var(--border)" }}
                   />
                 ) : (
-                  <p className="text-base font-semibold">{day.name}</p>
+                  <p className="text-base font-semibold">
+                    {day.name}
+                    {isToday && (
+                      <span className="ml-2 text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                        TODAY
+                      </span>
+                    )}
+                  </p>
                 )}
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
                   {DAY_TYPE_LABELS[day.day_type]}

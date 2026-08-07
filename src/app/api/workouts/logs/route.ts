@@ -38,3 +38,20 @@ export async function POST(request: NextRequest) {
   }
   return NextResponse.json({ log: data }, { status: 201 });
 }
+
+// Deletes by client_id rather than server id, since a set removed right
+// after logging might still only exist in the offline queue, never having
+// reached the server to receive a row — client_id is the one identifier
+// guaranteed to exist in both cases.
+export async function DELETE(request: NextRequest) {
+  const clientId = request.nextUrl.searchParams.get("client_id");
+  if (!clientId) {
+    return NextResponse.json({ error: "client_id is required." }, { status: 400 });
+  }
+  const supabase = getSupabaseServerClient();
+  const { error } = await supabase.from("exercise_logs").delete().eq("client_id", clientId);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}

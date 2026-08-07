@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { PlanExercise } from "@/lib/types";
 import RepTally from "./RepTally";
-import { postWithQueue } from "@/lib/offlineQueue";
+import { postWithQueue, deleteLoggedSet } from "@/lib/offlineQueue";
 
 function parseFirstNumber(text: string | null, fallback: number): number {
   if (!text) return fallback;
@@ -11,7 +11,7 @@ function parseFirstNumber(text: string | null, fallback: number): number {
   return match ? Number(match[0]) : fallback;
 }
 
-type ConfirmedSet = { setNumber: number; reps: number; weight: string; rpe: string };
+type ConfirmedSet = { clientId: string; setNumber: number; reps: number; weight: string; rpe: string };
 
 export default function LogDataPanel({
   planExercise,
@@ -46,9 +46,10 @@ function MainLiftLogger({
   const [rpe, setRpe] = useState("7");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(true);
 
   const setNumber = confirmed.length + 1;
-  const allDone = confirmed.length >= totalSets;
+  const targetReached = confirmed.length >= totalSets;
 
   async function handleConfirm() {
     setSaving(true);
@@ -61,39 +62,54 @@ function MainLiftLogger({
       setError("Couldn't start today's session — check your connection and try again.");
       return;
     }
+    const clientId = crypto.randomUUID();
     await postWithQueue("/api/workouts/logs", {
       session_id: sessionId,
       plan_exercise_id: planExercise.id,
-      client_id: crypto.randomUUID(),
+      client_id: clientId,
       set_number: setNumber,
       actual_reps: reps,
       weight_kg: weight ? Number(weight) : null,
       rpe: Number(rpe),
     });
     setSaving(false);
-    setConfirmed((prev) => [...prev, { setNumber, reps, weight, rpe }]);
+    setConfirmed((prev) => [...prev, { clientId, setNumber, reps, weight, rpe }]);
     setReps(defaultReps);
+    if (confirmed.length + 1 >= totalSets) setFormOpen(false);
+  }
+
+  async function handleRemove(clientId: string) {
+    setConfirmed((prev) => prev.filter((s) => s.clientId !== clientId));
+    await deleteLoggedSet("/api/workouts/logs", clientId);
   }
 
   return (
     <div className="mt-3 flex flex-col gap-3 border-t pt-3" style={{ borderColor: "var(--border)" }}>
       {confirmed.map((s) => (
-        <div key={s.setNumber} className="flex items-center justify-between text-sm" style={{ color: "var(--muted)" }}>
+        <div key={s.clientId} className="flex items-center justify-between text-sm" style={{ color: "var(--muted)" }}>
           <span>Set {s.setNumber}</span>
-          <span>
+          <span className="flex items-center gap-2">
             {s.reps} reps{s.weight ? ` · ${s.weight} kg` : ""} · RPE {s.rpe} ✓
+            <button onClick={() => handleRemove(s.clientId)} style={{ color: "var(--danger)" }} aria-label={`Remove set ${s.setNumber}`}>
+              ×
+            </button>
           </span>
         </div>
       ))}
 
-      {allDone ? (
+      {!formOpen ? (
         <div className="flex flex-col items-center gap-2 py-2">
           <p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
-            All {totalSets} sets logged ✓
+            {targetReached ? `All ${totalSets} sets logged ✓` : `${confirmed.length} sets logged`}
           </p>
-          <button onClick={onDone} className="text-sm font-medium" style={{ color: "var(--accent)" }}>
-            Done
-          </button>
+          <div className="flex gap-4">
+            <button onClick={() => setFormOpen(true)} className="text-sm font-medium" style={{ color: "var(--accent)" }}>
+              + Add another set
+            </button>
+            <button onClick={onDone} className="text-sm font-medium" style={{ color: "var(--muted)" }}>
+              Done
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -134,14 +150,25 @@ function MainLiftLogger({
 
           <RepTally value={reps} onChange={setReps} label="Reps" />
 
-          <button
-            onClick={handleConfirm}
-            disabled={saving}
-            className="rounded-xl py-2.5 text-base font-semibold text-white disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent)" }}
-          >
-            {saving ? "Saving…" : "Confirm set"}
-          </button>
+          <div className="flex gap-2">
+            {targetReached && (
+              <button
+                onClick={() => setFormOpen(false)}
+                className="flex-1 rounded-xl py-2.5 text-base font-medium"
+                style={{ color: "var(--accent)" }}
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              onClick={handleConfirm}
+              disabled={saving}
+              className="flex-1 rounded-xl py-2.5 text-base font-semibold text-white disabled:opacity-50"
+              style={{ backgroundColor: "var(--accent)" }}
+            >
+              {saving ? "Saving…" : "Confirm set"}
+            </button>
+          </div>
         </>
       )}
     </div>

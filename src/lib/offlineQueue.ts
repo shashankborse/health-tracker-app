@@ -73,3 +73,25 @@ export async function flushQueue(): Promise<void> {
 export function queuedCount(): number {
   return readQueue().length;
 }
+
+/**
+ * Deletes a previously-logged set by client_id, whether it already synced
+ * or is still only sitting in the local queue. Removing it from the queue
+ * stops a pending sync from resurrecting it; the DELETE call handles the
+ * case where it already reached the server. Both run unconditionally since
+ * we can't know from here which one actually applies.
+ */
+export async function deleteLoggedSet(url: string, clientId: string): Promise<void> {
+  const queue = readQueue();
+  const stillQueued = queue.some((q) => q.id === clientId);
+  if (stillQueued) {
+    writeQueue(queue.filter((q) => q.id !== clientId));
+  }
+  try {
+    await fetch(`${url}?client_id=${encodeURIComponent(clientId)}`, { method: "DELETE" });
+  } catch {
+    // Deletion of an already-synced row failed silently (offline); the row
+    // will still exist next time the app opens. Acceptable for this rare
+    // edge case (deleting a set while offline) versus a full delete-queue.
+  }
+}
