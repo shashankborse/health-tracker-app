@@ -57,7 +57,10 @@ export default async function MetricDetailPage({
           </span>
           {points.length > 0 && (
             <span className="text-sm" style={{ color: "var(--muted)" }}>
-              latest
+              {new Date(`${points[points.length - 1].date}T00:00:00`).toLocaleDateString("en-IE", {
+                day: "numeric",
+                month: "short",
+              })}
             </span>
           )}
         </div>
