@@ -1,5 +1,6 @@
 import BottomNav from "@/components/BottomNav";
 import OfflineQueueIndicator from "@/components/OfflineQueueIndicator";
+import PullToRefresh from "@/components/PullToRefresh";
 
 export default function AppLayout({
   children,
@@ -10,7 +11,7 @@ export default function AppLayout({
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
       <div className="safe-top flex-1 pb-24">
         <OfflineQueueIndicator />
-        {children}
+        <PullToRefresh>{children}</PullToRefresh>
       </div>
       <BottomNav />
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import MiniLineChart from "./MiniLineChart";
 
 type HistoryLog = {
   id: string;
@@ -58,6 +59,14 @@ export default function ViewProgressModal({
   }
   const dates = [...grouped.keys()].sort((a, b) => (a < b ? 1 : -1));
 
+  // API returns newest-first; charts read left-to-right chronologically.
+  const chronological = [...(logs ?? [])].reverse();
+  const repsSeries = chronological.filter((l) => l.actual_reps !== null).map((l) => l.actual_reps as number);
+  const weightSeries = chronological.filter((l) => l.weight_kg !== null).map((l) => l.weight_kg as number);
+  const durationSeries = chronological
+    .filter((l) => l.duration_seconds !== null || l.hold_time_seconds !== null)
+    .map((l) => (l.duration_seconds ?? l.hold_time_seconds) as number);
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50" onClick={onClose}>
       <div
@@ -85,6 +94,14 @@ export default function ViewProgressModal({
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             No logged sets yet for this exercise.
           </p>
+        )}
+
+        {!error && logs !== null && logs.length > 0 && (
+          <div className="mb-4 flex flex-col gap-3">
+            <MiniLineChart label="Reps" unit="reps" points={repsSeries} />
+            <MiniLineChart label="Weight" unit="kg" points={weightSeries} color="#34c759" />
+            <MiniLineChart label="Duration" unit="s" points={durationSeries} color="#ff9500" />
+          </div>
         )}
 
         <div className="flex flex-col gap-4">

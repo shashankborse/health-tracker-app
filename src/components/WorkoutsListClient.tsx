@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
 
@@ -28,6 +28,13 @@ export default function WorkoutsListClient({
   const [editMode, setEditMode] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
+
+  // Pull-to-refresh calls router.refresh(), which reruns the Server
+  // Component and passes a new initialDays — sync it in, since useState's
+  // initial value is otherwise only read once.
+  useEffect(() => {
+    setDays(initialDays);
+  }, [initialDays]);
 
   const sorted = [...days].sort((a, b) => a.sort_order - b.sort_order);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PlanDay, PlanExercise, ExerciseCategory, LogType } from "@/lib/types";
 import ExerciseCard from "./ExerciseCard";
 import RunLogger from "./RunLogger";
@@ -34,6 +34,11 @@ export default function WorkoutDayClient({
   const [exercises, setExercises] = useState(initialExercises);
   const [editMode, setEditMode] = useState(false);
   const sessionIdRef = useRef<string | null>(null);
+
+  // Pull-to-refresh calls router.refresh(); sync in the re-fetched server data.
+  useEffect(() => {
+    setExercises(initialExercises);
+  }, [initialExercises]);
 
   async function ensureSessionId(): Promise<string> {
     if (sessionIdRef.current) return sessionIdRef.current;

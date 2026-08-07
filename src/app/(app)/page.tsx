@@ -17,6 +17,14 @@ const SECTIONS = [
       <path d="M6.5 8.5 4 11l2.5 2.5M17.5 8.5 20 11l-2.5 2.5M7 11h10M8 8v6M16 8v6" />
     ),
   },
+  {
+    href: "/health",
+    title: "Health",
+    description: "Fitbit-sourced biometrics via Google Health.",
+    icon: (
+      <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.9c0 5.6-7.5 10.2-7.5 10.2ZM8 12h1.5l1-2 1.5 3.5 1-1.5H15" />
+    ),
+  },
 ];
 
 export default function Home() {

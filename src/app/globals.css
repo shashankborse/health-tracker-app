@@ -49,6 +49,14 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  /* A floor of 12px so the nav never looks flush against the edge even
+     on devices/browsers with no home-indicator inset to report. */
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
 }

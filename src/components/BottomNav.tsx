@@ -50,6 +50,15 @@ const TABS: Tab[] = [
         active
       ),
   },
+  {
+    href: "/health",
+    label: "Health",
+    icon: (active) =>
+      strokeIcon(
+        "M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.9c0 5.6-7.5 10.2-7.5 10.2ZM8 12h1.5l1-2 1.5 3.5 1-1.5H15",
+        active
+      ),
+  },
 ];
 
 export default function BottomNav() {
@@ -64,7 +73,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-1 flex-col items-center gap-0.5 py-2"
+              className="flex flex-1 flex-col items-center gap-0.5 py-2.5"
             >
               {tab.icon(active)}
               <span
