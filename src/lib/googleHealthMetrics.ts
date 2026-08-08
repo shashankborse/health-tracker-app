@@ -313,14 +313,21 @@ export async function runBackfillChunk(): Promise<BackfillChunkResult> {
     throw new Error(`Google Health API error for ${metric.dataType}: ${res.status} ${await res.text()}`);
   }
   const body = await res.json();
-  const dataPoints: any[] = body.dataPoints ?? [];
+  const rawDataPoints: any[] = body.dataPoints ?? [];
+  // Google Health can surface the SAME real-world activity from more than
+  // one device (confirmed live: a day's steps were reported by both the
+  // Fitbit and, separately, the phone's own motion sensor via HealthKit —
+  // summing both roughly doubled the true count). SPEC.md's whole premise
+  // is Fitbit-sourced data, so only Fitbit readings are ever stored.
+  const dataPoints = rawDataPoints.filter((p) => p.dataSource?.platform === "FITBIT");
   const rowsWritten = await metric.upsert(supabase, dataPoints);
 
   let nextCursor: BackfillCursor;
   if (body.nextPageToken) {
     nextCursor = { metricIndex: cursor.metricIndex, windowEnd, pageToken: body.nextPageToken };
-  } else if (dataPoints.length > 0 && windowStart > HISTORY_FLOOR) {
-    // This window had data — older history may still exist for this metric.
+  } else if (rawDataPoints.length > 0 && windowStart > HISTORY_FLOOR) {
+    // This window had data of some kind — older history may still exist,
+    // even if none of it happened to be Fitbit-sourced in this window.
     nextCursor = { metricIndex: cursor.metricIndex, windowEnd: windowStart, pageToken: null };
   } else {
     // Empty window (or we've hit the floor) — this metric is exhausted.
