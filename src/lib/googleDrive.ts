@@ -117,12 +117,19 @@ export async function getValidDriveAccessToken(): Promise<string> {
 }
 
 /**
- * Finds a folder by name among files this app has access to (drive.file
- * scope only ever sees files it created, so this is always scoped to our
- * own folders), creating it if it doesn't exist yet.
+ * Finds a folder by name (optionally scoped to a parent folder) among files
+ * this app has access to (drive.file scope only ever sees files it
+ * created). Returns null if no such folder exists — callers that want
+ * create-if-missing should use getOrCreateFolder instead.
  */
-export async function getOrCreateFolder(accessToken: string, name: string): Promise<string> {
-  const query = `name='${name.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+export async function findFolder(
+  accessToken: string,
+  name: string,
+  parentId?: string
+): Promise<string | null> {
+  const query =
+    `name='${name.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false` +
+    (parentId ? ` and '${parentId}' in parents` : "");
   const listRes = await fetch(
     `${DRIVE_API}/files?q=${encodeURIComponent(query)}&fields=files(id,name)`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -131,9 +138,20 @@ export async function getOrCreateFolder(accessToken: string, name: string): Prom
     throw new Error(`Drive folder lookup failed: ${await listRes.text()}`);
   }
   const listBody = await listRes.json();
-  if (listBody.files?.length > 0) {
-    return listBody.files[0].id;
-  }
+  return listBody.files?.length > 0 ? listBody.files[0].id : null;
+}
+
+/**
+ * Finds a folder by name (optionally scoped to a parent folder), creating
+ * it if it doesn't exist yet.
+ */
+export async function getOrCreateFolder(
+  accessToken: string,
+  name: string,
+  parentId?: string
+): Promise<string> {
+  const existing = await findFolder(accessToken, name, parentId);
+  if (existing) return existing;
 
   const createRes = await fetch(`${DRIVE_API}/files?fields=id`, {
     method: "POST",
@@ -141,13 +159,45 @@ export async function getOrCreateFolder(accessToken: string, name: string): Prom
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, mimeType: "application/vnd.google-apps.folder" }),
+    body: JSON.stringify({
+      name,
+      mimeType: "application/vnd.google-apps.folder",
+      ...(parentId ? { parents: [parentId] } : {}),
+    }),
   });
   if (!createRes.ok) {
     throw new Error(`Drive folder creation failed: ${await createRes.text()}`);
   }
   const createBody = await createRes.json();
   return createBody.id;
+}
+
+/** Lists the (non-trashed) files directly inside a Drive folder. */
+export async function listFilesInFolder(
+  accessToken: string,
+  folderId: string
+): Promise<{ id: string; name: string }[]> {
+  const query = `'${folderId}' in parents and trashed=false`;
+  const res = await fetch(
+    `${DRIVE_API}/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=1000`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) {
+    throw new Error(`Drive folder listing failed: ${await res.text()}`);
+  }
+  const body = await res.json();
+  return body.files ?? [];
+}
+
+/** Downloads a Drive file's raw content. */
+export async function downloadFileFromDrive(accessToken: string, fileId: string): Promise<Buffer> {
+  const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Drive file download failed: ${await res.text()}`);
+  }
+  return Buffer.from(await res.arrayBuffer());
 }
 
 /** Uploads a file into a Drive folder, returning its id and view link. */
