@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import type { WeightEntry } from "@/lib/types";
 import WeightChart from "@/components/WeightChart";
@@ -34,6 +35,21 @@ export default async function WeightPage() {
       )}
 
       <WeightChart entries={chronological} />
+
+      <Link
+        href="/weight/measurements"
+        className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm active:opacity-70"
+      >
+        <div>
+          <p className="text-base font-semibold">Weekly Measurements</p>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            Body measurements and progress photos.
+          </p>
+        </div>
+        <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </Link>
 
       <WeightEntryForm />
 

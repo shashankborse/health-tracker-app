@@ -1,5 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import DisconnectGoogleHealthButton from "@/components/DisconnectGoogleHealthButton";
+import DisconnectGoogleDriveButton from "@/components/DisconnectGoogleDriveButton";
 import BackfillProgress from "@/components/BackfillProgress";
 import MetricTrendCard from "@/components/MetricTrendCard";
 import SleepSessionsList from "@/components/SleepSessionsList";
@@ -13,18 +14,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   access_denied: "Google Health connection was cancelled.",
 };
 
+const DRIVE_ERROR_MESSAGES: Record<string, string> = {
+  invalid_state: "Something went wrong starting the connection. Please try again.",
+  no_refresh_token: "Google didn't return a long-lived connection. Try disconnecting access in your Google Account and reconnecting.",
+  token_exchange_failed: "Couldn't complete the connection with Google. Please try again.",
+  access_denied: "Google Drive connection was cancelled.",
+};
+
 export default async function HealthPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string }>;
+  searchParams: Promise<{ connected?: string; error?: string; drive_connected?: string; drive_error?: string }>;
 }) {
   const params = await searchParams;
   const supabase = getSupabaseServerClient();
-  const { data: connection } = await supabase
-    .from("google_health_connection")
-    .select("*")
-    .eq("id", "default")
-    .maybeSingle();
+  const [{ data: connection }, { data: driveConnection }] = await Promise.all([
+    supabase.from("google_health_connection").select("*").eq("id", "default").maybeSingle(),
+    supabase.from("google_drive_connection").select("*").eq("id", "default").maybeSingle(),
+  ]);
 
   let steps: { entry_date: string; count: number }[] = [];
   let restingHeartRate: { entry_date: string; beats_per_minute: number }[] = [];
@@ -96,6 +103,22 @@ export default async function HealthPage({
           {ERROR_MESSAGES[params.error] ?? "Something went wrong."}
         </div>
       )}
+      {params.drive_connected && (
+        <div
+          className="rounded-2xl p-4 text-sm font-medium shadow-sm"
+          style={{ backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)" }}
+        >
+          Connected to Google Drive.
+        </div>
+      )}
+      {params.drive_error && (
+        <div
+          className="rounded-2xl p-4 text-sm font-medium shadow-sm"
+          style={{ backgroundColor: "color-mix(in srgb, var(--danger) 12%, transparent)", color: "var(--danger)" }}
+        >
+          {DRIVE_ERROR_MESSAGES[params.drive_error] ?? "Something went wrong."}
+        </div>
+      )}
 
       {connection ? (
         <>
@@ -162,8 +185,7 @@ export default async function HealthPage({
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             Syncs steps, resting heart rate, HRV, respiratory rate, skin
             temperature, SpO2, sleep stages, and weight from your Fitbit via
-            Google Health. Also grants the narrow Drive access needed for
-            progress photos, exercise recordings, and database backups.
+            Google Health.
           </p>
           <a
             href="/api/google-health/connect"
@@ -171,6 +193,39 @@ export default async function HealthPage({
             style={{ backgroundColor: "var(--accent)" }}
           >
             Connect Google Health
+          </a>
+        </div>
+      )}
+
+      {driveConnection ? (
+        <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-base font-semibold">Google Drive Connected</p>
+            <DisconnectGoogleDriveButton />
+          </div>
+          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
+            Since{" "}
+            {new Date(driveConnection.connected_at).toLocaleDateString("en-IE", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-sm">
+          <p className="text-base font-semibold">Connect Google Drive</p>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            Needed for progress photos, exercise recordings, and database
+            backups — a separate, narrow connection (this app can only see
+            files it creates itself) from Google Health above.
+          </p>
+          <a
+            href="/api/google-drive/connect"
+            className="mt-1 rounded-xl py-3 text-center text-base font-semibold text-white active:opacity-80"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            Connect Google Drive
           </a>
         </div>
       )}
