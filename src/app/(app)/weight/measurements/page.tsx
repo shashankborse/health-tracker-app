@@ -22,7 +22,12 @@ type ProgressPhoto = {
   drive_view_link: string;
 };
 
-const POSE_LABELS: Record<string, string> = { front: "Front", side: "Side", back: "Back" };
+const POSE_LABELS: Record<string, string> = {
+  front: "Front",
+  left_side: "Left side",
+  right_side: "Right side",
+  back: "Back",
+};
 
 function formatWeek(dateStr: string) {
   return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-IE", {

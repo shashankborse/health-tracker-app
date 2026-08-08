@@ -4,7 +4,7 @@ import { getValidDriveAccessToken, getOrCreateFolder, uploadFileToDrive } from "
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const NUMERIC_FIELDS = ["arm_cm", "chest_cm", "waist_cm", "hip_cm", "thigh_cm"] as const;
-const POSES = ["front", "side", "back"] as const;
+const POSES = ["front", "left_side", "right_side", "back"] as const;
 const DRIVE_FOLDER_NAME = "Health Tracker Progress Photos";
 
 export async function POST(request: NextRequest) {

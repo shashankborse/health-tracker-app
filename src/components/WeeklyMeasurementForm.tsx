@@ -11,7 +11,8 @@ function todayLocalISODate() {
 
 const POSES = [
   { key: "front", label: "Front" },
-  { key: "side", label: "Side" },
+  { key: "left_side", label: "Left side" },
+  { key: "right_side", label: "Right side" },
   { key: "back", label: "Back" },
 ] as const;
 
@@ -143,11 +144,11 @@ export default function WeeklyMeasurementForm() {
         <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>
           Progress photos (at least one)
         </label>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {POSES.map((pose) => (
             <label
               key={pose.key}
-              className="flex flex-1 flex-col items-center gap-1 rounded-xl border border-dashed py-3 text-center text-xs font-medium"
+              className="flex flex-col items-center gap-1 rounded-xl border border-dashed py-3 text-center text-xs font-medium"
               style={{ borderColor: "var(--border)", color: photos[pose.key] ? "var(--accent)" : "var(--muted)" }}
             >
               {photos[pose.key] ? "✓ " + pose.label : pose.label}
