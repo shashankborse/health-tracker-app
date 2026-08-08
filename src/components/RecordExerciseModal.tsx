@@ -60,9 +60,6 @@ export default function RecordExerciseModal({
           return;
         }
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
         setStage("previewing");
       } catch {
         setError("Couldn't access the camera. Check camera permissions for this app.");
@@ -83,6 +80,17 @@ export default function RecordExerciseModal({
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // The <video> preview element only mounts once stage flips to
+  // "previewing"/"recording" (it's conditionally rendered below), so the
+  // stream can only be attached AFTER that render commits — attaching it
+  // eagerly inside the getUserMedia callback above runs while videoRef is
+  // still null and silently does nothing, leaving a black screen.
+  useEffect(() => {
+    if ((stage === "previewing" || stage === "recording") && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [stage]);
 
   function handleStartRecording() {
     const stream = streamRef.current;
@@ -134,7 +142,6 @@ export default function RecordExerciseModal({
           audio: false,
         });
         streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
         setStage("previewing");
       } catch {
         setError("Couldn't access the camera. Check camera permissions for this app.");
