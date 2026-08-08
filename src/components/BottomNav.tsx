@@ -59,6 +59,12 @@ const TABS: Tab[] = [
         active
       ),
   },
+  {
+    href: "/nutrition",
+    label: "Nutrition",
+    icon: (active) =>
+      strokeIcon("M7 2v6M10 2v6M13 2v6M7 8c0 1.5 1.2 2 3 2s3-.5 3-2M10 10v12", active),
+  },
 ];
 
 export default function BottomNav() {

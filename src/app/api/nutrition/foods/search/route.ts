@@ -14,11 +14,15 @@ type FoodResult = {
   brand: string | null;
   servingDescription: string | null;
   defaultServingGrams: number | null;
+  quantityUnit: "g" | "ml";
   caloriesKcalPer100g: number;
   proteinGPer100g: number;
   carbsGPer100g: number;
   fatGPer100g: number;
   fibreGPer100g: number | null;
+  sugarGPer100g: number | null;
+  saturatedFatGPer100g: number | null;
+  sodiumMgPer100g: number | null;
   isFavourite: boolean;
 };
 
@@ -50,11 +54,15 @@ export async function GET(request: NextRequest) {
       brand: r.brand,
       servingDescription: r.serving_description,
       defaultServingGrams: r.default_serving_grams,
+      quantityUnit: r.quantity_unit,
       caloriesKcalPer100g: r.calories_kcal_per_100g,
       proteinGPer100g: r.protein_g_per_100g,
       carbsGPer100g: r.carbs_g_per_100g,
       fatGPer100g: r.fat_g_per_100g,
       fibreGPer100g: r.fibre_g_per_100g,
+      sugarGPer100g: r.sugar_g_per_100g,
+      saturatedFatGPer100g: r.saturated_fat_g_per_100g,
+      sodiumMgPer100g: r.sodium_mg_per_100g,
       isFavourite: r.is_favourite,
     }));
 
@@ -70,11 +78,15 @@ export async function GET(request: NextRequest) {
         brand: f.brand,
         servingDescription: null,
         defaultServingGrams: null,
+        quantityUnit: f.quantityUnit,
         caloriesKcalPer100g: f.caloriesKcalPer100g,
         proteinGPer100g: f.proteinGPer100g,
         carbsGPer100g: f.carbsGPer100g,
         fatGPer100g: f.fatGPer100g,
         fibreGPer100g: f.fibreGPer100g,
+        sugarGPer100g: f.sugarGPer100g,
+        saturatedFatGPer100g: f.saturatedFatGPer100g,
+        sodiumMgPer100g: f.sodiumMgPer100g,
         isFavourite: false,
       }));
 
