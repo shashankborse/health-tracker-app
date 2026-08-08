@@ -83,8 +83,8 @@ export default function PrivacyPolicyPage() {
       <h2 className="mt-2 text-lg font-semibold">Contact</h2>
       <p>
         Questions about this policy can be directed to the app owner at{" "}
-        <a href="mailto:shashank.borse@olivegroup.io" style={{ color: "var(--accent)" }}>
-          shashank.borse@olivegroup.io
+        <a href="mailto:me@shashankborse.com" style={{ color: "var(--accent)" }}>
+          me@shashankborse.com
         </a>
         .
       </p>
