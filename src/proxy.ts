@@ -6,7 +6,11 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 // reviewers, who won't have (and shouldn't need) the app password. "/" is
 // the OAuth-verification "home page" — it explains the app and forwards
 // signed-in visitors to /home itself, so it must not redirect to /login.
-const PUBLIC_PATHS = ["/login", "/api/login", "/privacy", "/terms"];
+// /api/keep-alive and /api/google-health/sync are hit by Vercel Cron
+// (see vercel.json), which never carries the session cookie — without this
+// exemption they silently redirect to /login instead of ever running,
+// which is exactly what was happening to keep-alive before this fix.
+const PUBLIC_PATHS = ["/login", "/api/login", "/privacy", "/terms", "/api/keep-alive", "/api/google-health/sync"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -352,3 +352,61 @@ export async function runBackfillChunk(): Promise<BackfillChunkResult> {
     rowsWritten,
   };
 }
+
+// A small overlap behind "today" so a day whose Fitbit sync finalized late
+// (e.g. last night's sleep summary computed after this ran) still gets
+// picked up on the next call rather than being permanently missed.
+const RECENT_SYNC_DAYS = 3;
+
+export type SyncResult = { metricsSynced: string[]; rowsWritten: number };
+
+/**
+ * Re-fetches the last few days for every metric in one pass — unlike
+ * backfill, this isn't chunked/resumable, since a handful of days is small
+ * enough to finish well within one request. Used by both the daily Vercel
+ * Cron and the on-demand "app just opened" refresh.
+ */
+export async function syncRecentData(): Promise<SyncResult> {
+  const supabase = getSupabaseServerClient();
+  const { data: connection } = await supabase
+    .from("google_health_connection")
+    .select("id")
+    .eq("id", "default")
+    .maybeSingle();
+  if (!connection) return { metricsSynced: [], rowsWritten: 0 };
+
+  const windowStart = addDaysISO(todayISO(), -RECENT_SYNC_DAYS);
+  const windowEnd = addDaysISO(todayISO(), 1); // exclusive upper bound — include all of today
+
+  const accessToken = await getValidAccessToken();
+  const metricsSynced: string[] = [];
+  let rowsWritten = 0;
+
+  for (const metric of METRICS) {
+    let pageToken: string | null = null;
+    do {
+      const params = new URLSearchParams({ filter: filterExpr(metric, windowStart, windowEnd) });
+      if (metric.pageSize) params.set("pageSize", String(metric.pageSize));
+      if (pageToken) params.set("pageToken", pageToken);
+
+      const res = await fetch(`${API_BASE}/${metric.dataType}/dataPoints?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) {
+        throw new Error(`Google Health API error for ${metric.dataType}: ${res.status} ${await res.text()}`);
+      }
+      const body = await res.json();
+      const dataPoints = ((body.dataPoints ?? []) as any[]).filter((p) => p.dataSource?.platform === "FITBIT");
+      rowsWritten += await metric.upsert(supabase, dataPoints);
+      pageToken = body.nextPageToken ?? null;
+    } while (pageToken);
+    metricsSynced.push(metric.name);
+  }
+
+  await supabase
+    .from("google_health_connection")
+    .update({ last_daily_sync_at: new Date().toISOString() })
+    .eq("id", "default");
+
+  return { metricsSynced, rowsWritten };
+}
