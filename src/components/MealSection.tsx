@@ -261,7 +261,7 @@ export default function MealSection({
           className="relative bg-card p-4 shadow-sm"
           style={{
             transform: `translateX(${swipeDistance}px)`,
-            transition: snapping ? "transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)" : undefined,
+            transition: snapping ? "transform 220ms cubic-bezier(0.25, 1, 0.5, 1)" : undefined,
           }}
         >
           {favourites.length > 0 && (
