@@ -2,12 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-function todayLocalISODate() {
-  const d = new Date();
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
-}
+import { todayLocalISODate } from "@/lib/date";
 
 export default function WeightEntryForm() {
   const router = useRouter();

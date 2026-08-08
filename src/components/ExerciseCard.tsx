@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import type { PlanExercise } from "@/lib/types";
+import { todayLocalISODate } from "@/lib/date";
 import VideoModal from "./VideoModal";
 import LogDataPanel from "./LogDataPanel";
 import ViewProgressModal from "./ViewProgressModal";
+import RecordExerciseModal from "./RecordExerciseModal";
 
 function formatTarget(pe: PlanExercise): string {
   if (pe.log_type === "main_lift") {
@@ -48,6 +50,7 @@ export default function ExerciseCard({
   const [editing, setEditing] = useState(false);
   const [logging, setLogging] = useState(false);
   const [viewingProgress, setViewingProgress] = useState(false);
+  const [recording, setRecording] = useState(false);
   const exercise = planExercise.exercises;
 
   return (
@@ -150,10 +153,9 @@ export default function ExerciseCard({
             View Progress
           </button>
           <button
-            disabled
-            title="Available once Google Drive sync is set up (Phase 3)"
+            onClick={() => setRecording(true)}
             className={ACTION_BUTTON}
-            style={{ backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)", opacity: 0.4 }}
+            style={{ backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)" }}
           >
             Record
           </button>
@@ -186,8 +188,18 @@ export default function ExerciseCard({
       {viewingProgress && (
         <ViewProgressModal
           exerciseId={planExercise.exercise_id}
+          planExerciseId={planExercise.id}
           exerciseName={exercise.name}
           onClose={() => setViewingProgress(false)}
+        />
+      )}
+
+      {recording && (
+        <RecordExerciseModal
+          planExerciseId={planExercise.id}
+          recordedDate={todayLocalISODate()}
+          onClose={() => setRecording(false)}
+          onSaved={() => {}}
         />
       )}
     </div>

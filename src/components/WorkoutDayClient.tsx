@@ -2,14 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PlanDay, PlanExercise, ExerciseCategory, LogType } from "@/lib/types";
+import { todayLocalISODate } from "@/lib/date";
 import ExerciseCard from "./ExerciseCard";
 import RunLogger from "./RunLogger";
-
-function todayLocalISODate() {
-  const d = new Date();
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
-}
 
 const CATEGORY_ORDER: ExerciseCategory[] = ["warmup", "main", "cooldown"];
 const CATEGORY_LABELS: Record<ExerciseCategory, string> = {

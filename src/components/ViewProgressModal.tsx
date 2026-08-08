@@ -33,17 +33,25 @@ function formatDate(dateStr: string): string {
   });
 }
 
+type Recording = {
+  id: string;
+  recorded_date: string;
+};
+
 export default function ViewProgressModal({
   exerciseId,
+  planExerciseId,
   exerciseName,
   onClose,
 }: {
   exerciseId: string;
+  planExerciseId: string;
   exerciseName: string;
   onClose: () => void;
 }) {
   const [logs, setLogs] = useState<HistoryLog[] | null>(null);
   const [error, setError] = useState(false);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
 
   useEffect(() => {
     fetch(`/api/workouts/exercises/${exerciseId}/history`)
@@ -51,6 +59,13 @@ export default function ViewProgressModal({
       .then((data) => setLogs(data.logs))
       .catch(() => setError(true));
   }, [exerciseId]);
+
+  useEffect(() => {
+    fetch(`/api/workouts/plan-exercises/${planExerciseId}/recordings`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setRecordings(data.recordings ?? []))
+      .catch(() => {});
+  }, [planExerciseId]);
 
   const grouped = new Map<string, HistoryLog[]>();
   for (const log of logs ?? []) {
@@ -101,6 +116,25 @@ export default function ViewProgressModal({
             <MiniLineChart label="Reps" unit="reps" points={repsSeries} />
             <MiniLineChart label="Weight" unit="kg" points={weightSeries} color="#34c759" />
             <MiniLineChart label="Duration" unit="s" points={durationSeries} color="#ff9500" />
+          </div>
+        )}
+
+        {recordings.length > 0 && (
+          <div className="mb-4 flex flex-col gap-3">
+            <p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
+              Recordings
+            </p>
+            {recordings.map((rec) => (
+              <div key={rec.id} className="overflow-hidden rounded-xl bg-black">
+                <video
+                  src={`/api/workouts/recordings/${rec.id}/stream`}
+                  controls
+                  playsInline
+                  className="aspect-[9/16] w-full object-cover"
+                />
+                <p className="px-2 py-1 text-xs text-white/70">{formatDate(rec.recorded_date)}</p>
+              </div>
+            ))}
           </div>
         )}
 
