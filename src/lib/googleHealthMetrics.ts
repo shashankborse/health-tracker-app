@@ -16,12 +16,25 @@ type BackfillCursor = {
   pageToken: string | null;
 };
 
+type FetchPageResult = { rawDataPoints: any[]; nextPageToken: string | null };
+
 type Metric = {
   name: string;
   dataType: string; // kebab-case URL path segment
   filterKey: string; // exact snake_case union field name Google's filter syntax expects
   filterSuffix: string; // e.g. "date", "interval.civil_start_time"
   pageSize?: number;
+  maxWindowDays?: number; // this dataType's own query-range cap; defaults to 90
+  // Overrides the default GET dataPoints.list call — needed for dataTypes
+  // (like total-calories) that only support the POST dailyRollUp/rollUp
+  // actions instead. See total_calories below.
+  fetchPage?: (accessToken: string, windowStart: string, windowEnd: string, pageToken: string | null) => Promise<FetchPageResult>;
+  // Rollup responses are already reconciled across every source server-side
+  // and carry no per-point dataSource field — the FITBIT-only filter both
+  // backfill and sync apply doesn't apply (and would silently zero out
+  // every row if it did). Set alongside a custom fetchPage that already
+  // scopes sources itself (e.g. via dataSourceFamily).
+  skipPlatformFilter?: boolean;
   upsert: (supabase: SupabaseClient, dataPoints: any[]) => Promise<number>;
 };
 
@@ -251,10 +264,77 @@ const METRICS: Metric[] = [
       return count;
     },
   },
+  {
+    // Confirmed live against the real discovery doc (health.googleapis.com/
+    // $discovery/rest?version=v4): total-calories is NOT a dataPoints.list-
+    // able type — a real backfill attempt 400'd with "List is not supported
+    // for data type total-calories, but the following actions are
+    // supported: rollup, dailyRollup". Uses the POST dailyRollUp action
+    // instead, which already sums to one row per civil day (windowSizeDays
+    // defaults to 1) and returns no nextPageToken at all — no pagination
+    // loop needed for a ≤14-day window. dataSourceFamily scopes to wearables
+    // (Fitbit/Pixel Watch, excludes manual entries) as this rollup's closest
+    // equivalent to the FITBIT-platform filter every list-based metric uses;
+    // rollup responses have no per-point dataSource field to filter on.
+    name: "total_calories",
+    dataType: "total-calories",
+    filterKey: "total_calories",
+    filterSuffix: "interval.civil_start_time", // unused — fetchPage overrides the default GET
+    maxWindowDays: 14, // this dataType's own documented cap, vs. every other metric's 90
+    skipPlatformFilter: true,
+    fetchPage: async (accessToken, windowStart, windowEnd) => {
+      const toDate = (iso: string) => {
+        const [year, month, day] = iso.split("-").map(Number);
+        return { year, month, day };
+      };
+      const res = await fetch(`${API_BASE}/total-calories/dataPoints:dailyRollUp`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          range: { start: { date: toDate(windowStart) }, end: { date: toDate(windowEnd) } },
+          dataSourceFamily: "users/me/dataSourceFamilies/google-wearables",
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Google Health API error for total-calories: ${res.status} ${await res.text()}`);
+      }
+      const body = await res.json();
+      return { rawDataPoints: body.rollupDataPoints ?? [], nextPageToken: null };
+    },
+    upsert: async (supabase, points) => {
+      const rows = points
+        .filter((p) => p.civilStartTime?.date && p.totalCalories?.kcalSum != null)
+        .map((p) => ({ entry_date: civilDateToISO(p.civilStartTime.date), kcal: Number(p.totalCalories.kcalSum) }));
+      return upsertOne(supabase, "daily_total_calories", rows, "entry_date");
+    },
+  },
 ];
 
 function filterExpr(metric: Metric, start: string, end: string): string {
   return `${metric.filterKey}.${metric.filterSuffix} >= "${start}" AND ${metric.filterKey}.${metric.filterSuffix} < "${end}"`;
+}
+
+// The GET dataPoints.list call every metric used until total_calories
+// needed its own POST dailyRollUp shape instead (see METRICS above).
+async function defaultFetchPage(
+  metric: Metric,
+  accessToken: string,
+  windowStart: string,
+  windowEnd: string,
+  pageToken: string | null
+): Promise<FetchPageResult> {
+  const params = new URLSearchParams({ filter: filterExpr(metric, windowStart, windowEnd) });
+  if (metric.pageSize) params.set("pageSize", String(metric.pageSize));
+  if (pageToken) params.set("pageToken", pageToken);
+
+  const res = await fetch(`${API_BASE}/${metric.dataType}/dataPoints?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Google Health API error for ${metric.dataType}: ${res.status} ${await res.text()}`);
+  }
+  const body = await res.json();
+  return { rawDataPoints: body.dataPoints ?? [], nextPageToken: body.nextPageToken ?? null };
 }
 
 export type BackfillChunkResult = {
@@ -298,33 +378,31 @@ export async function runBackfillChunk(): Promise<BackfillChunkResult> {
 
   const metric = METRICS[cursor.metricIndex];
   const windowEnd = cursor.windowEnd;
-  const rawWindowStart = addDaysISO(windowEnd, -90);
+  const rawWindowStart = addDaysISO(windowEnd, -(metric.maxWindowDays ?? 90));
   const windowStart = rawWindowStart < HISTORY_FLOOR ? HISTORY_FLOOR : rawWindowStart;
 
   const accessToken = await getValidAccessToken();
-  const params = new URLSearchParams({ filter: filterExpr(metric, windowStart, windowEnd) });
-  if (metric.pageSize) params.set("pageSize", String(metric.pageSize));
-  if (cursor.pageToken) params.set("pageToken", cursor.pageToken);
-
-  const res = await fetch(`${API_BASE}/${metric.dataType}/dataPoints?${params.toString()}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) {
-    throw new Error(`Google Health API error for ${metric.dataType}: ${res.status} ${await res.text()}`);
-  }
-  const body = await res.json();
-  const rawDataPoints: any[] = body.dataPoints ?? [];
+  const { rawDataPoints, nextPageToken } = await (metric.fetchPage ?? ((...args) => defaultFetchPage(metric, ...args)))(
+    accessToken,
+    windowStart,
+    windowEnd,
+    cursor.pageToken
+  );
   // Google Health can surface the SAME real-world activity from more than
   // one device (confirmed live: a day's steps were reported by both the
   // Fitbit and, separately, the phone's own motion sensor via HealthKit —
   // summing both roughly doubled the true count). SPEC.md's whole premise
-  // is Fitbit-sourced data, so only Fitbit readings are ever stored.
-  const dataPoints = rawDataPoints.filter((p) => p.dataSource?.platform === "FITBIT");
+  // is Fitbit-sourced data, so only Fitbit readings are ever stored — except
+  // rollup-based metrics (skipPlatformFilter), whose responses are already
+  // reconciled server-side with no dataSource field to filter on.
+  const dataPoints = metric.skipPlatformFilter
+    ? rawDataPoints
+    : rawDataPoints.filter((p) => p.dataSource?.platform === "FITBIT");
   const rowsWritten = await metric.upsert(supabase, dataPoints);
 
   let nextCursor: BackfillCursor;
-  if (body.nextPageToken) {
-    nextCursor = { metricIndex: cursor.metricIndex, windowEnd, pageToken: body.nextPageToken };
+  if (nextPageToken) {
+    nextCursor = { metricIndex: cursor.metricIndex, windowEnd, pageToken: nextPageToken };
   } else if (rawDataPoints.length > 0 && windowStart > HISTORY_FLOOR) {
     // This window had data of some kind — older history may still exist,
     // even if none of it happened to be Fitbit-sourced in this window.
@@ -385,20 +463,17 @@ export async function syncRecentData(): Promise<SyncResult> {
   for (const metric of METRICS) {
     let pageToken: string | null = null;
     do {
-      const params = new URLSearchParams({ filter: filterExpr(metric, windowStart, windowEnd) });
-      if (metric.pageSize) params.set("pageSize", String(metric.pageSize));
-      if (pageToken) params.set("pageToken", pageToken);
-
-      const res = await fetch(`${API_BASE}/${metric.dataType}/dataPoints?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!res.ok) {
-        throw new Error(`Google Health API error for ${metric.dataType}: ${res.status} ${await res.text()}`);
-      }
-      const body = await res.json();
-      const dataPoints = ((body.dataPoints ?? []) as any[]).filter((p) => p.dataSource?.platform === "FITBIT");
+      const { rawDataPoints, nextPageToken } = await (metric.fetchPage ?? ((...args) => defaultFetchPage(metric, ...args)))(
+        accessToken,
+        windowStart,
+        windowEnd,
+        pageToken
+      );
+      const dataPoints = metric.skipPlatformFilter
+        ? rawDataPoints
+        : rawDataPoints.filter((p) => p.dataSource?.platform === "FITBIT");
       rowsWritten += await metric.upsert(supabase, dataPoints);
-      pageToken = body.nextPageToken ?? null;
+      pageToken = nextPageToken;
     } while (pageToken);
     metricsSynced.push(metric.name);
   }

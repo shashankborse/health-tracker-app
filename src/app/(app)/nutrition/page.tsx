@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { todayLocalISODate } from "@/lib/date";
 import type { Food, FoodLogEntry, MealType } from "@/lib/types";
+import type { NutritionTargets } from "@/lib/nutritionTargets";
 import DailyTotalsCard, { type DailyTotals } from "@/components/DailyTotalsCard";
 import MealSection from "@/components/MealSection";
+import GoalsForm from "@/components/GoalsForm";
 
 // Client-rendered, not server-fetched: this app deliberately never computes
 // "today" server-side (see src/app/api/nutrition/logs/route.ts) since
@@ -65,19 +67,28 @@ function toEntry(raw: RawEntry): FoodLogEntry {
 export default function NutritionPage() {
   const [entries, setEntries] = useState<FoodLogEntry[] | null>(null);
   const [favourites, setFavourites] = useState<Food[]>([]);
+  const [targets, setTargets] = useState<NutritionTargets | null>(null);
   const [error, setError] = useState(false);
   const today = todayLocalISODate();
+
+  function refetchTargets() {
+    fetch(`/api/nutrition/targets?date=${today}`)
+      .then((r) => (r.ok ? r.json() : { targets: null }))
+      .then((body) => setTargets(body.targets));
+  }
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
       fetch(`/api/nutrition/logs?date=${today}`).then((r) => (r.ok ? r.json() : Promise.reject())),
       fetch("/api/nutrition/foods?favourite=true").then((r) => (r.ok ? r.json() : Promise.reject())),
+      fetch(`/api/nutrition/targets?date=${today}`).then((r) => (r.ok ? r.json() : { targets: null })),
     ])
-      .then(([logsBody, foodsBody]) => {
+      .then(([logsBody, foodsBody, targetsBody]) => {
         if (cancelled) return;
         setEntries((logsBody.entries as RawEntry[]).map(toEntry));
         setFavourites(foodsBody.foods as Food[]);
+        setTargets(targetsBody.targets);
       })
       .catch(() => !cancelled && setError(true));
     return () => {
@@ -132,7 +143,8 @@ export default function NutritionPage() {
         </p>
       ) : (
         <>
-          <DailyTotalsCard totals={totals} />
+          <GoalsForm onSaved={refetchTargets} />
+          <DailyTotalsCard totals={totals} targets={targets} />
           {MEAL_TYPES.map((mealType) => (
             <MealSection
               key={mealType}

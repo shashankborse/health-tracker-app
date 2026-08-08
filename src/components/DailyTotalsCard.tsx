@@ -1,3 +1,5 @@
+import type { NutritionTargets } from "@/lib/nutritionTargets";
+
 export type DailyTotals = {
   calories: number;
   protein: number;
@@ -9,7 +11,33 @@ export type DailyTotals = {
   sodium: number;
 };
 
-export default function DailyTotalsCard({ totals }: { totals: DailyTotals }) {
+function MacroBar({ label, actual, target }: { label: string; actual: number; target?: number }) {
+  const pct = target ? Math.min(100, (actual / target) * 100) : 0;
+  return (
+    <div>
+      <p className="text-base font-semibold">
+        {Math.round(actual)}
+        {target ? <span style={{ color: "var(--muted)" }}>/{Math.round(target)}</span> : "g"}
+      </p>
+      <p className="text-xs" style={{ color: "var(--muted)" }}>{label}</p>
+      {target !== undefined && (
+        <div className="mt-1 h-1 rounded-full" style={{ backgroundColor: "color-mix(in srgb, var(--muted) 20%, transparent)" }}>
+          <div className="h-1 rounded-full" style={{ width: `${pct}%`, backgroundColor: "var(--accent)" }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function DailyTotalsCard({
+  totals,
+  targets,
+}: {
+  totals: DailyTotals;
+  targets?: NutritionTargets | null;
+}) {
+  const remaining = targets ? Math.round(targets.calories - totals.calories) : null;
+
   return (
     <div className="rounded-2xl bg-card p-4 shadow-sm">
       <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
@@ -18,22 +46,19 @@ export default function DailyTotalsCard({ totals }: { totals: DailyTotals }) {
       <p className="mt-1 text-3xl font-bold">
         {Math.round(totals.calories)}{" "}
         <span className="text-base font-medium" style={{ color: "var(--muted)" }}>
-          kcal
+          {targets ? `/ ${targets.calories} kcal` : "kcal"}
         </span>
       </p>
+      {remaining !== null && (
+        <p className="mt-0.5 text-sm" style={{ color: remaining >= 0 ? "var(--muted)" : "var(--danger)" }}>
+          {remaining >= 0 ? `${remaining} kcal left` : `${Math.abs(remaining)} kcal over`}
+          {targets?.usingSyncedBurn ? " · using today's synced burn" : ""}
+        </p>
+      )}
       <div className="mt-3 grid grid-cols-4 gap-2 text-center">
-        <div>
-          <p className="text-base font-semibold">{Math.round(totals.protein)}g</p>
-          <p className="text-xs" style={{ color: "var(--muted)" }}>Protein</p>
-        </div>
-        <div>
-          <p className="text-base font-semibold">{Math.round(totals.carbs)}g</p>
-          <p className="text-xs" style={{ color: "var(--muted)" }}>Carbs</p>
-        </div>
-        <div>
-          <p className="text-base font-semibold">{Math.round(totals.fat)}g</p>
-          <p className="text-xs" style={{ color: "var(--muted)" }}>Fat</p>
-        </div>
+        <MacroBar label="Protein" actual={totals.protein} target={targets?.protein} />
+        <MacroBar label="Carbs" actual={totals.carbs} target={targets?.carbs} />
+        <MacroBar label="Fat" actual={totals.fat} target={targets?.fat} />
         <div>
           <p className="text-base font-semibold">{Math.round(totals.fibre)}g</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Fibre</p>
