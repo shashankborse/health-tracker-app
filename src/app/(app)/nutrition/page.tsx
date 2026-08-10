@@ -7,6 +7,7 @@ import type { NutritionTargets } from "@/lib/nutritionTargets";
 import DailyTotalsCard, { type DailyTotals } from "@/components/DailyTotalsCard";
 import MealSection from "@/components/MealSection";
 import GoalsForm from "@/components/GoalsForm";
+import SupplementStack from "@/components/SupplementStack";
 
 // Client-rendered, not server-fetched: this app deliberately never computes
 // "today" server-side (see src/app/api/nutrition/logs/route.ts) since
@@ -158,6 +159,7 @@ export default function NutritionPage() {
               onFavourited={handleFavourited}
             />
           ))}
+          <SupplementStack />
         </>
       )}
     </main>

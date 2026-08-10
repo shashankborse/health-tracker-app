@@ -94,6 +94,7 @@ There's no single affordable app that combines Whoop-style recovery/strain analy
 ### Nice-to-Have (P1)
 
 - **Barcode scanning for packaged food**: use the iPhone camera to scan a product's barcode and look it up directly against Open Food Facts (which is barcode-keyed), auto-filling the food log entry instead of a manual search. *Technical note:* iOS Safari doesn't support the native `BarcodeDetector` browser API (confirmed unsupported), so this needs a JS decoding library (e.g. zxing-js) reading frames from the camera via `getUserMedia`, which iOS Safari does support — a well-documented, workable pattern, just not a one-line built-in feature.
+- **Supplement stack tracking**: a small user-maintained list of supplements (name, dose, purpose, AM/PM/with-meal timing) with a one-tap "logged today" toggle per supplement, resetting daily. Added mid-build (2026-08-08) — not the vitamin/mineral panel already captured from food (that's covered under Nutrition logging above), a separate manual checklist for actual supplement pills/powders taken outside of food.
 - Weekly workout-volume dashboard (sets × reps × weight per body part, trended over time).
 - Correlation views (e.g. sleep vs. next-day readiness, nutrition vs. workout performance).
 - Data export (CSV) for weight, workout, and nutrition history as a personal backup/safety net.
