@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import type { PlanDay, PlanExercise, ExerciseCategory, LogType } from "@/lib/types";
 import { todayLocalISODate } from "@/lib/date";
 import ExerciseCard from "./ExerciseCard";
@@ -116,6 +117,16 @@ export default function WorkoutDayClient({
           {editMode ? "Done" : "Edit"}
         </button>
       </div>
+
+      {!editMode && exercises.some((e) => e.log_type === "main_lift") && (
+        <Link
+          href={`/workouts/${day.id}/session`}
+          className="rounded-2xl py-3 text-center text-base font-semibold text-white shadow-sm active:opacity-80"
+          style={{ backgroundColor: "var(--accent)" }}
+        >
+          ▶ Start live session
+        </Link>
+      )}
 
       {day.description && (
         <div className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
