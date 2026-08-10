@@ -31,22 +31,28 @@ function writeQueue(queue: QueuedRequest[]) {
   window.dispatchEvent(new Event("offline-queue-changed"));
 }
 
-async function attemptPost(url: string, body: Record<string, unknown>): Promise<boolean> {
+async function attemptPost(url: string, body: Record<string, unknown>): Promise<{ ok: boolean; json: unknown }> {
   try {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    return res.ok;
+    const json = res.ok ? await res.json().catch(() => null) : null;
+    return { ok: res.ok, json };
   } catch {
-    return false;
+    return { ok: false, json: null };
   }
 }
 
-/** Try to POST now; if it fails (offline/network error), queue it for later. */
-export async function postWithQueue(url: string, body: Record<string, unknown>): Promise<void> {
-  const ok = await attemptPost(url, body);
+/**
+ * Try to POST now; if it fails (offline/network error), queue it for later.
+ * Returns the parsed response body on immediate success, or null if it had
+ * to be queued — callers that need a live signal from the response (e.g.
+ * a new-PR flag) only get it when the POST actually went through now.
+ */
+export async function postWithQueue(url: string, body: Record<string, unknown>): Promise<unknown | null> {
+  const { ok, json } = await attemptPost(url, body);
   if (!ok) {
     const id = body.client_id as string;
     const queue = readQueue();
@@ -54,7 +60,9 @@ export async function postWithQueue(url: string, body: Record<string, unknown>):
       queue.push({ id, url, body });
       writeQueue(queue);
     }
+    return null;
   }
+  return json;
 }
 
 /** Retry every queued request; drop the ones that succeed. */
@@ -64,7 +72,7 @@ export async function flushQueue(): Promise<void> {
 
   const remaining: QueuedRequest[] = [];
   for (const item of queue) {
-    const ok = await attemptPost(item.url, item.body);
+    const { ok } = await attemptPost(item.url, item.body);
     if (!ok) remaining.push(item);
   }
   writeQueue(remaining);

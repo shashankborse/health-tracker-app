@@ -11,7 +11,7 @@ function parseFirstNumber(text: string | null, fallback: number): number {
   return match ? Number(match[0]) : fallback;
 }
 
-type ConfirmedSet = { clientId: string; setNumber: number; reps: number; weight: string; rpe: string };
+type ConfirmedSet = { clientId: string; setNumber: number; reps: number; weight: string; rpe: string; isNewPr?: boolean };
 
 export default function LogDataPanel({
   planExercise,
@@ -63,7 +63,7 @@ function MainLiftLogger({
       return;
     }
     const clientId = crypto.randomUUID();
-    await postWithQueue("/api/workouts/logs", {
+    const result = (await postWithQueue("/api/workouts/logs", {
       session_id: sessionId,
       plan_exercise_id: planExercise.id,
       client_id: clientId,
@@ -71,9 +71,9 @@ function MainLiftLogger({
       actual_reps: reps,
       weight_kg: weight ? Number(weight) : null,
       rpe: Number(rpe),
-    });
+    })) as { isNewPr?: boolean } | null;
     setSaving(false);
-    setConfirmed((prev) => [...prev, { clientId, setNumber, reps, weight, rpe }]);
+    setConfirmed((prev) => [...prev, { clientId, setNumber, reps, weight, rpe, isNewPr: result?.isNewPr }]);
     setReps(defaultReps);
     if (confirmed.length + 1 >= totalSets) setFormOpen(false);
   }
@@ -89,6 +89,11 @@ function MainLiftLogger({
         <div key={s.clientId} className="flex items-center justify-between text-sm" style={{ color: "var(--muted)" }}>
           <span>Set {s.setNumber}</span>
           <span className="flex items-center gap-2">
+            {s.isNewPr && (
+              <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                🏆 New PR!
+              </span>
+            )}
             {s.reps} reps{s.weight ? ` · ${s.weight} kg` : ""} · RPE {s.rpe} ✓
             <button onClick={() => handleRemove(s.clientId)} style={{ color: "var(--danger)" }} aria-label={`Remove set ${s.setNumber}`}>
               ×

@@ -36,7 +36,45 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ log: data }, { status: 201 });
+
+  // Personal-record check — only meaningful for a weighted set (main lifts;
+  // reps-only/duration/hold-time entries have no weight_kg). A PR is
+  // "heaviest weight_kg ever logged for this exercise" — reps at that
+  // weight are stored for context, not as a second, independent PR axis.
+  let isNewPr = false;
+  let previousBestWeightKg: number | null = null;
+  if (body.weight_kg != null && body.actual_reps != null) {
+    const { data: planExercise } = await supabase
+      .from("plan_exercises")
+      .select("exercise_id")
+      .eq("id", body.plan_exercise_id)
+      .single();
+
+    if (planExercise) {
+      const [{ data: session }, { data: existingPr }] = await Promise.all([
+        supabase.from("workout_sessions").select("session_date").eq("id", body.session_id).single(),
+        supabase.from("personal_records").select("best_weight_kg").eq("exercise_id", planExercise.exercise_id).maybeSingle(),
+      ]);
+
+      const weightNum = Number(body.weight_kg);
+      if (!existingPr || weightNum > Number(existingPr.best_weight_kg)) {
+        previousBestWeightKg = existingPr?.best_weight_kg != null ? Number(existingPr.best_weight_kg) : null;
+        isNewPr = true;
+        await supabase.from("personal_records").upsert(
+          {
+            exercise_id: planExercise.exercise_id,
+            best_weight_kg: weightNum,
+            best_reps_at_weight: body.actual_reps,
+            achieved_date: session?.session_date ?? new Date().toISOString().slice(0, 10),
+            previous_best_weight_kg: previousBestWeightKg,
+          },
+          { onConflict: "exercise_id" }
+        );
+      }
+    }
+  }
+
+  return NextResponse.json({ log: data, isNewPr, previousBestWeightKg }, { status: 201 });
 }
 
 // Deletes by client_id rather than server id, since a set removed right

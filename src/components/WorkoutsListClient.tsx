@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
+import type { PersonalRecordRow } from "@/app/(app)/workouts/page";
 import WeekStrip from "./WeekStrip";
+
+function formatShortDate(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-IE", { day: "numeric", month: "short" });
+}
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
   strength: "Strength",
@@ -21,9 +26,11 @@ const DAY_TYPE_COLORS: Record<DayType, string> = {
 export default function WorkoutsListClient({
   initialDays,
   exerciseCounts,
+  personalRecords,
 }: {
   initialDays: PlanDay[];
   exerciseCounts: Record<string, number>;
+  personalRecords: PersonalRecordRow[];
 }) {
   const [days, setDays] = useState(initialDays);
   const [editMode, setEditMode] = useState(false);
@@ -109,6 +116,32 @@ export default function WorkoutsListClient({
       </div>
 
       <WeekStrip days={days} />
+
+      {personalRecords.length > 0 && (
+        <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+            Personal Records
+          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            {personalRecords.map((r) => (
+              <div key={r.exercises.name} className="flex items-center justify-between text-sm">
+                <span className="font-medium">{r.exercises.name}</span>
+                <span className="flex items-center gap-2">
+                  {r.previous_best_weight_kg != null && (
+                    <span className="text-xs" style={{ color: "var(--accent)" }}>
+                      +{Math.round((r.best_weight_kg - r.previous_best_weight_kg) * 10) / 10}kg
+                    </span>
+                  )}
+                  <span className="font-semibold">
+                    {r.best_weight_kg}kg × {r.best_reps_at_weight}
+                  </span>
+                  <span style={{ color: "var(--muted)" }}>{formatShortDate(r.achieved_date)}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         {sorted.map((day, i) => {
