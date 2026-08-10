@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { NutritionTargets } from "@/lib/nutritionTargets";
 
 export type DailyTotals = {
@@ -40,9 +41,14 @@ export default function DailyTotalsCard({
 
   return (
     <div className="rounded-2xl bg-card p-4 shadow-sm">
-      <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-        Today
-      </p>
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+          Today
+        </p>
+        <Link href="/nutrition/nutrients" className="text-sm font-medium" style={{ color: "var(--accent)" }}>
+          Nutrients ›
+        </Link>
+      </div>
       <p className="mt-1 text-3xl font-bold">
         {Math.round(totals.calories)}{" "}
         <span className="text-base font-medium" style={{ color: "var(--muted)" }}>
