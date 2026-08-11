@@ -3,28 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
-import type { PersonalRecordRow } from "@/app/(app)/workouts/page";
-import WeekStrip from "./WeekStrip";
-
-function formatShortDate(dateStr: string) {
-  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-IE", { day: "numeric", month: "short" });
-}
-
-function formatWeekdayLetter(dateStr: string) {
-  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-IE", { weekday: "short" }).slice(0, 1);
-}
-
-const MUSCLE_GROUP_LABELS: Record<string, string> = {
-  chest: "Chest",
-  back: "Back",
-  shoulders: "Shoulders",
-  arms: "Arms",
-  legs: "Legs",
-  glutes: "Glutes",
-  core: "Core",
-  mobility: "Mobility",
-  cardio: "Cardio",
-};
+import TrainingCalendar from "./TrainingCalendar";
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
   strength: "Strength",
@@ -42,15 +21,13 @@ const DAY_TYPE_COLORS: Record<DayType, string> = {
 export default function WorkoutsListClient({
   initialDays,
   exerciseCounts,
-  personalRecords,
-  dailyTonnage,
-  muscleGroupVolume,
+  weeklyTonnageKg,
+  dailyTonnageByDate,
 }: {
   initialDays: PlanDay[];
   exerciseCounts: Record<string, number>;
-  personalRecords: PersonalRecordRow[];
-  dailyTonnage: { date: string; tonnageKg: number }[];
-  muscleGroupVolume: { muscleGroup: string; tonnageKg: number }[];
+  weeklyTonnageKg: number;
+  dailyTonnageByDate: Record<string, number>;
 }) {
   const [days, setDays] = useState(initialDays);
   const [editMode, setEditMode] = useState(false);
@@ -135,86 +112,23 @@ export default function WorkoutsListClient({
         </button>
       </div>
 
-      <WeekStrip days={days} />
+      <TrainingCalendar dailyTonnageByDate={dailyTonnageByDate} />
 
-      {personalRecords.length > 0 && (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-            Personal Records
-          </p>
-          <div className="mt-2 flex flex-col gap-2">
-            {personalRecords.map((r) => (
-              <div key={r.exercises.name} className="flex items-center justify-between text-sm">
-                <span className="font-medium">{r.exercises.name}</span>
-                <span className="flex items-center gap-2">
-                  {r.previous_best_weight_kg != null && (
-                    <span className="text-xs" style={{ color: "var(--accent)" }}>
-                      +{Math.round((r.best_weight_kg - r.previous_best_weight_kg) * 10) / 10}kg
-                    </span>
-                  )}
-                  <span className="font-semibold">
-                    {r.best_weight_kg}kg × {r.best_reps_at_weight}
-                  </span>
-                  <span style={{ color: "var(--muted)" }}>{formatShortDate(r.achieved_date)}</span>
-                </span>
-              </div>
-            ))}
+      {weeklyTonnageKg > 0 && (
+        <Link href="/workouts/training-load" className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm active:opacity-70">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+              Training Load
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {Math.round(weeklyTonnageKg).toLocaleString()}
+              <span className="ml-1 text-sm font-medium" style={{ color: "var(--muted)" }}>kg this week</span>
+            </p>
           </div>
-        </div>
-      )}
-
-      {dailyTonnage.some((d) => d.tonnageKg > 0) && (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-            Training Load
-          </p>
-          <p className="mt-1 text-2xl font-bold">
-            {Math.round(dailyTonnage.reduce((sum, d) => sum + d.tonnageKg, 0)).toLocaleString()}
-            <span className="ml-1 text-sm font-medium" style={{ color: "var(--muted)" }}>kg this week</span>
-          </p>
-
-          <div className="mt-3 flex items-end gap-2" style={{ height: 64 }}>
-            {(() => {
-              const max = Math.max(...dailyTonnage.map((d) => d.tonnageKg), 1);
-              return dailyTonnage.map((d) => (
-                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="flex w-full flex-1 items-end">
-                    <div
-                      className="w-full rounded-md"
-                      style={{
-                        height: `${Math.max(4, (d.tonnageKg / max) * 100)}%`,
-                        backgroundColor: d.tonnageKg > 0 ? "var(--accent)" : "color-mix(in srgb, var(--muted) 20%, transparent)",
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px]" style={{ color: "var(--muted)" }}>{formatWeekdayLetter(d.date)}</span>
-                </div>
-              ));
-            })()}
-          </div>
-
-          {muscleGroupVolume.length > 0 && (
-            <div className="mt-4 flex flex-col gap-2 border-t pt-3" style={{ borderColor: "var(--border)" }}>
-              {muscleGroupVolume.map((m) => {
-                const total = muscleGroupVolume.reduce((sum, x) => sum + x.tonnageKg, 0);
-                const pct = Math.round((m.tonnageKg / total) * 100);
-                return (
-                  <div key={m.muscleGroup}>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{MUSCLE_GROUP_LABELS[m.muscleGroup] ?? m.muscleGroup}</span>
-                      <span style={{ color: "var(--muted)" }}>
-                        {Math.round(m.tonnageKg).toLocaleString()}kg ({pct}%)
-                      </span>
-                    </div>
-                    <div className="mt-1 h-1.5 rounded-full" style={{ backgroundColor: "color-mix(in srgb, var(--muted) 20%, transparent)" }}>
-                      <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: "var(--accent)" }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+          <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="var(--muted)" strokeWidth={2}>
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </Link>
       )}
 
       <div className="flex flex-col gap-3">
