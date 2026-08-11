@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { postWithQueue } from "@/lib/offlineQueue";
 
 export default function RunLogger({
@@ -8,6 +9,7 @@ export default function RunLogger({
 }: {
   ensureSessionId: () => Promise<string>;
 }) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -15,6 +17,7 @@ export default function RunLogger({
   const [distance, setDistance] = useState("");
   const [minutes, setMinutes] = useState("");
   const [rpe, setRpe] = useState("7");
+  const [newPhaseNumber, setNewPhaseNumber] = useState<number | null>(null);
 
   async function handleConfirm() {
     setSaving(true);
@@ -27,15 +30,19 @@ export default function RunLogger({
       setError("Couldn't start today's session — check your connection and try again.");
       return;
     }
-    await postWithQueue("/api/workouts/run-logs", {
+    const result = (await postWithQueue("/api/workouts/run-logs", {
       session_id: sessionId,
       client_id: crypto.randomUUID(),
       distance_km: distance ? Number(distance) : null,
       duration_seconds: minutes ? Math.round(Number(minutes) * 60) : null,
       rpe: Number(rpe),
-    });
+    })) as { phaseChanged?: boolean; newPhaseNumber?: number | null } | null;
     setSaving(false);
     setSaved(true);
+    if (result?.phaseChanged) {
+      setNewPhaseNumber(result.newPhaseNumber ?? null);
+      router.refresh();
+    }
   }
 
   if (saved) {
@@ -44,6 +51,11 @@ export default function RunLogger({
         <p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
           Run logged ✓
         </p>
+        {newPhaseNumber != null && (
+          <p className="mt-1 text-xs font-semibold" style={{ color: "var(--accent)" }}>
+            🏃 Moved to Phase {newPhaseNumber}
+          </p>
+        )}
       </div>
     );
   }

@@ -16,6 +16,7 @@ export type PlanDay = {
   day_type: DayType;
   description: string | null;
   sort_order: number;
+  running_phase_number: number;
 };
 
 export type Exercise = {
