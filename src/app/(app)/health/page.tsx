@@ -1,9 +1,12 @@
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { getReadinessForDate } from "@/lib/readiness";
+import { todayLocalISODate } from "@/lib/date";
 import DisconnectGoogleHealthButton from "@/components/DisconnectGoogleHealthButton";
 import DisconnectGoogleDriveButton from "@/components/DisconnectGoogleDriveButton";
 import BackfillProgress from "@/components/BackfillProgress";
 import MetricTrendCard from "@/components/MetricTrendCard";
 import SleepSessionsList from "@/components/SleepSessionsList";
+import ReadinessCard from "@/components/ReadinessCard";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +51,10 @@ export default async function HealthPage({
     light_minutes: number | null;
   }[] = [];
 
+  let readiness = null as Awaited<ReturnType<typeof getReadinessForDate>> | null;
+
   if (connection) {
+    readiness = await getReadinessForDate(supabase, todayLocalISODate());
     const [stepsRes, hrRes, hrvRes, respRes, spo2Res, tempRes, sleepRes] = await Promise.all([
       supabase.from("daily_steps").select("entry_date,count").order("entry_date", { ascending: true }).limit(120),
       supabase
@@ -133,6 +139,8 @@ export default async function HealthPage({
           </div>
 
           <BackfillProgress initialStatus={connection.backfill_status} />
+
+          {readiness && <ReadinessCard readiness={readiness} href="/health/readiness" />}
 
           <MetricTrendCard
             title="Steps"
