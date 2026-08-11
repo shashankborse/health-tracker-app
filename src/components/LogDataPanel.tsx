@@ -11,7 +11,15 @@ function parseFirstNumber(text: string | null, fallback: number): number {
   return match ? Number(match[0]) : fallback;
 }
 
-type ConfirmedSet = { clientId: string; setNumber: number; reps: number; weight: string; rpe: string; isNewPr?: boolean };
+type ConfirmedSet = {
+  clientId: string;
+  setNumber: number;
+  reps: number;
+  weight: string;
+  rpe: string;
+  isNewPr?: boolean;
+  overloadSuggestion?: { decision: string; nextWeightKg: number } | null;
+};
 
 export default function LogDataPanel({
   planExercise,
@@ -71,9 +79,12 @@ function MainLiftLogger({
       actual_reps: reps,
       weight_kg: weight ? Number(weight) : null,
       rpe: Number(rpe),
-    })) as { isNewPr?: boolean } | null;
+    })) as { isNewPr?: boolean; overloadSuggestion?: { decision: string; nextWeightKg: number } | null } | null;
     setSaving(false);
-    setConfirmed((prev) => [...prev, { clientId, setNumber, reps, weight, rpe, isNewPr: result?.isNewPr }]);
+    setConfirmed((prev) => [
+      ...prev,
+      { clientId, setNumber, reps, weight, rpe, isNewPr: result?.isNewPr, overloadSuggestion: result?.overloadSuggestion },
+    ]);
     setReps(defaultReps);
     if (confirmed.length + 1 >= totalSets) setFormOpen(false);
   }
@@ -92,6 +103,11 @@ function MainLiftLogger({
             {s.isNewPr && (
               <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
                 🏆 New PR!
+              </span>
+            )}
+            {s.overloadSuggestion?.decision === "increase" && (
+              <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                📈 Next: {s.overloadSuggestion.nextWeightKg}kg
               </span>
             )}
             {s.reps} reps{s.weight ? ` · ${s.weight} kg` : ""} · RPE {s.rpe} ✓

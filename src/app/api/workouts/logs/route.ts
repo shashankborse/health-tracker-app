@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { getReadinessForDate } from "@/lib/readiness";
+import { decideNextTarget } from "@/lib/progressiveOverload";
+import { todayLocalISODate } from "@/lib/date";
+
+function parseFirstNumber(text: string | null, fallback: number): number {
+  if (!text) return fallback;
+  const match = text.match(/\d+/);
+  return match ? Number(match[0]) : fallback;
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -37,24 +46,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Personal-record check — only meaningful for a weighted set (main lifts;
-  // reps-only/duration/hold-time entries have no weight_kg). A PR is
-  // "heaviest weight_kg ever logged for this exercise" — reps at that
-  // weight are stored for context, not as a second, independent PR axis.
+  // Personal-record check + progressive overload — both only meaningful
+  // for a weighted set (main lifts; reps-only/duration/hold-time entries
+  // have no weight_kg). A PR is "heaviest weight_kg ever logged for this
+  // exercise" — reps at that weight are stored for context, not as a
+  // second, independent PR axis.
   let isNewPr = false;
   let previousBestWeightKg: number | null = null;
+  let overloadSuggestion: { decision: string; nextWeightKg: number } | null = null;
+
   if (body.weight_kg != null && body.actual_reps != null) {
-    const { data: planExercise } = await supabase
-      .from("plan_exercises")
-      .select("exercise_id")
-      .eq("id", body.plan_exercise_id)
-      .single();
+    const [{ data: planExercise }, { data: session }] = await Promise.all([
+      supabase.from("plan_exercises").select("exercise_id, target_reps, target_weight_kg").eq("id", body.plan_exercise_id).single(),
+      supabase.from("workout_sessions").select("session_date").eq("id", body.session_id).single(),
+    ]);
 
     if (planExercise) {
-      const [{ data: session }, { data: existingPr }] = await Promise.all([
-        supabase.from("workout_sessions").select("session_date").eq("id", body.session_id).single(),
-        supabase.from("personal_records").select("best_weight_kg").eq("exercise_id", planExercise.exercise_id).maybeSingle(),
-      ]);
+      const { data: existingPr } = await supabase
+        .from("personal_records")
+        .select("best_weight_kg")
+        .eq("exercise_id", planExercise.exercise_id)
+        .maybeSingle();
 
       const weightNum = Number(body.weight_kg);
       if (!existingPr || weightNum > Number(existingPr.best_weight_kg)) {
@@ -71,10 +83,42 @@ export async function POST(request: NextRequest) {
           { onConflict: "exercise_id" }
         );
       }
+
+      // Progressive overload engine (SPEC.md:80) — recomputed from every
+      // complete (weight+reps+RPE) set logged for this exercise+session so
+      // far, same trigger point as the PR check above. Recomputing on
+      // every set is harmless (idempotent overwrite); the session's last
+      // set naturally reflects the complete picture.
+      if (body.rpe != null) {
+        const { data: setsToday } = await supabase
+          .from("exercise_logs")
+          .select("actual_reps, rpe")
+          .eq("session_id", body.session_id)
+          .eq("plan_exercise_id", body.plan_exercise_id)
+          .not("actual_reps", "is", null)
+          .not("rpe", "is", null);
+
+        if (setsToday && setsToday.length > 0) {
+          const readiness = await getReadinessForDate(supabase, session?.session_date ?? todayLocalISODate());
+          const currentWeightKg =
+            planExercise.target_weight_kg != null ? Number(planExercise.target_weight_kg) : weightNum;
+          const suggestion = decideNextTarget({
+            currentWeightKg,
+            targetReps: parseFirstNumber(planExercise.target_reps, 10),
+            setsToday: setsToday.map((s) => ({ actualReps: s.actual_reps as number, rpe: s.rpe as number })),
+            readinessBand: readiness.band,
+          });
+          await supabase
+            .from("plan_exercises")
+            .update({ target_weight_kg: suggestion.nextWeightKg })
+            .eq("id", body.plan_exercise_id);
+          overloadSuggestion = suggestion;
+        }
+      }
     }
   }
 
-  return NextResponse.json({ log: data, isNewPr, previousBestWeightKg }, { status: 201 });
+  return NextResponse.json({ log: data, isNewPr, previousBestWeightKg, overloadSuggestion }, { status: 201 });
 }
 
 // Deletes by client_id rather than server id, since a set removed right

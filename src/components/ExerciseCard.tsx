@@ -11,7 +11,8 @@ import RecordExerciseModal from "./RecordExerciseModal";
 function formatTarget(pe: PlanExercise): string {
   if (pe.log_type === "main_lift") {
     const sets = pe.target_sets ? `${pe.target_sets} × ` : "";
-    return `${sets}${pe.target_reps ?? "?"} reps`;
+    const weight = pe.target_weight_kg != null ? ` @ ${pe.target_weight_kg}kg` : "";
+    return `${sets}${pe.target_reps ?? "?"} reps${weight}`;
   }
   if (pe.notes) return pe.notes;
   if (pe.log_type === "reps") return `${pe.target_reps ?? "?"} reps`;
@@ -218,6 +219,7 @@ function ExerciseEditForm({
   const [videoUrl, setVideoUrl] = useState(planExercise.exercises.video_url ?? "");
   const [targetSets, setTargetSets] = useState(planExercise.target_sets?.toString() ?? "");
   const [targetReps, setTargetReps] = useState(planExercise.target_reps ?? "");
+  const [targetWeight, setTargetWeight] = useState(planExercise.target_weight_kg?.toString() ?? "");
   const [targetDuration, setTargetDuration] = useState(
     planExercise.target_duration_seconds?.toString() ?? ""
   );
@@ -239,6 +241,7 @@ function ExerciseEditForm({
       body: JSON.stringify({
         target_sets: targetSets ? Number(targetSets) : null,
         target_reps: targetReps || null,
+        target_weight_kg: targetWeight ? Number(targetWeight) : null,
         target_duration_seconds: targetDuration ? Number(targetDuration) : null,
         notes: notes || null,
       }),
@@ -281,6 +284,17 @@ function ExerciseEditForm({
             <input
               value={targetReps}
               onChange={(e) => setTargetReps(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+              style={{ borderColor: "var(--border)" }}
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Weight (kg)</label>
+            <input
+              type="number"
+              step="0.5"
+              value={targetWeight}
+              onChange={(e) => setTargetWeight(e.target.value)}
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
               style={{ borderColor: "var(--border)" }}
             />

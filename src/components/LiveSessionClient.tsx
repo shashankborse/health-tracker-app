@@ -18,13 +18,20 @@ function formatElapsed(totalSeconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-type ConfirmedSet = { clientId: string; weight: number; reps: number; isNewPr?: boolean };
+type ConfirmedSet = {
+  clientId: string;
+  weight: number;
+  reps: number;
+  isNewPr?: boolean;
+  overloadSuggestion?: { decision: string; nextWeightKg: number } | null;
+};
 
 type ExerciseState = {
   planExercise: PlanExercise;
   confirmed: ConfirmedSet[];
   pendingWeight: string;
   pendingReps: number;
+  pendingRpe: string;
 };
 
 type SessionLogRow = {
@@ -45,6 +52,7 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
       confirmed: [],
       pendingWeight: "",
       pendingReps: parseFirstNumber(pe.target_reps, 10),
+      pendingRpe: "7",
     }))
   );
 
@@ -104,7 +112,7 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
     };
   }, [day.id]);
 
-  function updatePending(exerciseIndex: number, patch: Partial<Pick<ExerciseState, "pendingWeight" | "pendingReps">>) {
+  function updatePending(exerciseIndex: number, patch: Partial<Pick<ExerciseState, "pendingWeight" | "pendingReps" | "pendingRpe">>) {
     setStates((prev) => prev.map((s, i) => (i !== exerciseIndex ? s : { ...s, ...patch })));
   }
 
@@ -122,8 +130,8 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
       set_number: setNumber,
       actual_reps: state.pendingReps,
       weight_kg: weightNum,
-      rpe: null,
-    })) as { isNewPr?: boolean } | null;
+      rpe: Number(state.pendingRpe),
+    })) as { isNewPr?: boolean; overloadSuggestion?: { decision: string; nextWeightKg: number } | null } | null;
 
     setStates((prev) =>
       prev.map((s, i) =>
@@ -131,7 +139,10 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
           ? s
           : {
               ...s,
-              confirmed: [...s.confirmed, { clientId, weight: weightNum ?? 0, reps: state.pendingReps, isNewPr: result?.isNewPr }],
+              confirmed: [
+                ...s.confirmed,
+                { clientId, weight: weightNum ?? 0, reps: state.pendingReps, isNewPr: result?.isNewPr, overloadSuggestion: result?.overloadSuggestion },
+              ],
             }
       )
     );
@@ -210,6 +221,11 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
                           🏆 New PR!
                         </span>
                       )}
+                      {c.overloadSuggestion?.decision === "increase" && (
+                        <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                          📈 {c.overloadSuggestion.nextWeightKg}kg
+                        </span>
+                      )}
                       <span className="font-medium">{c.weight}kg × {c.reps}</span>
                       <span style={{ color: "var(--accent)" }}>✓</span>
                       <button onClick={() => handleRemove(i, c.clientId)} style={{ color: "var(--danger)" }} aria-label={`Remove set ${setIdx + 1}`}>
@@ -220,46 +236,61 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
                 ))}
 
                 {s.confirmed.length < totalSets && (
-                  <div className="flex items-center gap-3 rounded-xl p-2" style={{ backgroundColor: "color-mix(in srgb, var(--muted) 8%, transparent)" }}>
-                    <span className="text-sm" style={{ color: "var(--muted)" }}>Set {s.confirmed.length + 1}</span>
-                    <div className="flex flex-1 items-center gap-2">
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        value={s.pendingWeight}
-                        onChange={(e) => updatePending(i, { pendingWeight: e.target.value })}
-                        placeholder="kg"
-                        className="w-16 rounded-lg border px-2 py-1.5 text-sm outline-none"
-                        style={{ borderColor: "var(--border)" }}
-                      />
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => updatePending(i, { pendingReps: Math.max(0, s.pendingReps - 1) })}
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-base font-semibold"
-                          style={{ backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)" }}
-                          aria-label="Remove a rep"
-                        >
-                          −
-                        </button>
-                        <span className="w-6 text-center text-sm font-semibold tabular-nums">{s.pendingReps}</span>
-                        <button
-                          onClick={() => updatePending(i, { pendingReps: s.pendingReps + 1 })}
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-base font-semibold text-white"
-                          style={{ backgroundColor: "var(--accent)" }}
-                          aria-label="Add a rep"
-                        >
-                          +
-                        </button>
+                  <div className="flex flex-col gap-2 rounded-xl p-2" style={{ backgroundColor: "color-mix(in srgb, var(--muted) 8%, transparent)" }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm" style={{ color: "var(--muted)" }}>Set {s.confirmed.length + 1}</span>
+                      <div className="flex flex-1 items-center gap-2">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          value={s.pendingWeight}
+                          onChange={(e) => updatePending(i, { pendingWeight: e.target.value })}
+                          placeholder="kg"
+                          className="w-16 rounded-lg border px-2 py-1.5 text-sm outline-none"
+                          style={{ borderColor: "var(--border)" }}
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => updatePending(i, { pendingReps: Math.max(0, s.pendingReps - 1) })}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-base font-semibold"
+                            style={{ backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)" }}
+                            aria-label="Remove a rep"
+                          >
+                            −
+                          </button>
+                          <span className="w-6 text-center text-sm font-semibold tabular-nums">{s.pendingReps}</span>
+                          <button
+                            onClick={() => updatePending(i, { pendingReps: s.pendingReps + 1 })}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-base font-semibold text-white"
+                            style={{ backgroundColor: "var(--accent)" }}
+                            aria-label="Add a rep"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleConfirm(i)}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white"
-                      style={{ backgroundColor: "var(--accent)" }}
-                      aria-label={`Confirm set ${s.confirmed.length + 1} for ${s.planExercise.exercises.name}`}
-                    >
-                      ✓
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm" style={{ color: "var(--muted)" }}>RPE</span>
+                      <select
+                        value={s.pendingRpe}
+                        onChange={(e) => updatePending(i, { pendingRpe: e.target.value })}
+                        className="rounded-lg border px-2 py-1.5 text-sm outline-none"
+                        style={{ borderColor: "var(--border)" }}
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleConfirm(i)}
+                        className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white"
+                        style={{ backgroundColor: "var(--accent)" }}
+                        aria-label={`Confirm set ${s.confirmed.length + 1} for ${s.planExercise.exercises.name}`}
+                      >
+                        ✓
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

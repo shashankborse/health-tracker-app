@@ -9,6 +9,7 @@ const PATCHABLE_FIELDS = [
   "sort_order",
   "target_sets",
   "target_reps",
+  "target_weight_kg",
   "target_duration_seconds",
   "notes",
 ] as const;
