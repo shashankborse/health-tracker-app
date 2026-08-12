@@ -1,5 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
-import { getReadinessForDate } from "@/lib/readiness";
+import { getReadinessForDate, getReadinessSeries, addDaysISO } from "@/lib/readiness";
 import { todayLocalISODate } from "@/lib/date";
 import DisconnectGoogleHealthButton from "@/components/DisconnectGoogleHealthButton";
 import DisconnectGoogleDriveButton from "@/components/DisconnectGoogleDriveButton";
@@ -7,6 +7,7 @@ import BackfillProgress from "@/components/BackfillProgress";
 import MetricTrendCard from "@/components/MetricTrendCard";
 import SleepSessionsList from "@/components/SleepSessionsList";
 import ReadinessCard from "@/components/ReadinessCard";
+import SleepReadinessScatter, { type SleepReadinessPoint } from "@/components/SleepReadinessScatter";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,24 @@ export default async function HealthPage({
   }[] = [];
 
   let readiness = null as Awaited<ReturnType<typeof getReadinessForDate>> | null;
+  const sleepReadinessPoints: SleepReadinessPoint[] = [];
 
   if (connection) {
-    readiness = await getReadinessForDate(supabase, todayLocalISODate());
+    const today = todayLocalISODate();
+    readiness = await getReadinessForDate(supabase, today);
+
+    // 60-day window gives enough (sleep, next-day score) pairs to be a
+    // meaningful scatter without an expensive query — reuses the same
+    // series fetch that powers the readiness detail page's Month view.
+    const series = await getReadinessSeries(supabase, addDaysISO(today, -60), today);
+    for (let i = 0; i < series.length - 1; i++) {
+      const sleepMinutes = series[i].components.sleep.value;
+      const nextDayScore = series[i + 1].score;
+      if (sleepMinutes != null && nextDayScore != null) {
+        sleepReadinessPoints.push({ date: series[i].date, sleepMinutes, readinessScore: nextDayScore });
+      }
+    }
+
     const [stepsRes, hrRes, hrvRes, respRes, spo2Res, tempRes, sleepRes] = await Promise.all([
       supabase.from("daily_steps").select("entry_date,count").order("entry_date", { ascending: true }).limit(120),
       supabase
@@ -141,6 +157,16 @@ export default async function HealthPage({
           <BackfillProgress initialStatus={connection.backfill_status} />
 
           {readiness && <ReadinessCard readiness={readiness} href="/health/readiness" />}
+
+          <div className="rounded-2xl bg-card p-4 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+              Sleep vs. Next-Day Readiness
+            </p>
+            <p className="text-xs" style={{ color: "var(--muted)" }}>Last 60 days</p>
+            <div className="mt-2">
+              <SleepReadinessScatter points={sleepReadinessPoints} />
+            </div>
+          </div>
 
           <MetricTrendCard
             title="Steps"
