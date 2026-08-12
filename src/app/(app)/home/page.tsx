@@ -25,6 +25,14 @@ const SECTIONS = [
       <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.9c0 5.6-7.5 10.2-7.5 10.2ZM8 12h1.5l1-2 1.5 3.5 1-1.5H15" />
     ),
   },
+  {
+    href: "/export",
+    title: "Export Data",
+    description: "Download your weight, workout, and nutrition history as CSV.",
+    icon: (
+      <path d="M12 4v10m0 0-3.5-3.5M12 14l3.5-3.5M6 18h12" />
+    ),
+  },
 ];
 
 export default function Home() {
