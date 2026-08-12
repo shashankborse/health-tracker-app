@@ -3,6 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import type { WeightEntry } from "@/lib/types";
 import WeightChart from "@/components/WeightChart";
 import WeightEntryForm from "@/components/WeightEntryForm";
+import EnableRemindersCard from "@/components/EnableRemindersCard";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,8 @@ export default async function WeightPage() {
       )}
 
       <WeightChart entries={chronological} />
+
+      <EnableRemindersCard />
 
       <Link
         href="/weight/measurements"

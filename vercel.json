@@ -11,6 +11,10 @@
     {
       "path": "/api/backup/run",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/push/weight-reminder",
+      "schedule": "35 6 * * *"
     }
   ]
 }
