@@ -1,12 +1,13 @@
 import type { WeightEntry } from "@/lib/types";
 import InteractiveTrendChart from "./InteractiveTrendChart";
+import Card from "./Card";
 
 export default function WeightChart({ entries }: { entries: WeightEntry[] }) {
   if (entries.length < 2) {
     return (
-      <div className="flex h-[140px] items-center justify-center rounded-2xl bg-card px-6 text-center text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+      <Card className="flex h-[140px] items-center justify-center px-6 text-center text-sm" style={{ color: "var(--muted)" }}>
         Log a few entries to see your trend.
-      </div>
+      </Card>
     );
   }
 
@@ -15,10 +16,10 @@ export default function WeightChart({ entries }: { entries: WeightEntry[] }) {
   const changeLabel = `${change > 0 ? "+" : ""}${change.toFixed(1)} kg`;
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <div className="mb-2 flex items-baseline justify-between">
-        <span className="text-2xl font-bold tracking-tight">{latest.toFixed(1)} kg</span>
-        <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>
+        <span className="text-2xl font-bold tracking-tight tabular-nums">{latest.toFixed(1)} kg</span>
+        <span className="text-sm font-medium tabular-nums" style={{ color: "var(--muted)" }}>
           {changeLabel} over {entries.length} entries
         </span>
       </div>
@@ -26,6 +27,6 @@ export default function WeightChart({ entries }: { entries: WeightEntry[] }) {
         points={entries.map((e) => ({ date: e.entry_date, value: e.weight_kg }))}
         unit="kg"
       />
-    </div>
+    </Card>
   );
 }

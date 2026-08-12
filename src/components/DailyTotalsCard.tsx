@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { NutritionTargets } from "@/lib/nutritionTargets";
+import Card from "./Card";
 
 export type DailyTotals = {
   calories: number;
@@ -16,7 +17,7 @@ function MacroBar({ label, actual, target }: { label: string; actual: number; ta
   const pct = target ? Math.min(100, (actual / target) * 100) : 0;
   return (
     <div>
-      <p className="text-base font-semibold">
+      <p className="text-base font-semibold tabular-nums">
         {Math.round(actual)}
         {target ? <span style={{ color: "var(--muted)" }}>/{Math.round(target)}</span> : "g"}
       </p>
@@ -40,7 +41,7 @@ export default function DailyTotalsCard({
   const remaining = targets ? Math.round(targets.calories - totals.calories) : null;
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
           Today
@@ -49,7 +50,7 @@ export default function DailyTotalsCard({
           Nutrients ›
         </Link>
       </div>
-      <p className="mt-1 text-3xl font-bold">
+      <p className="mt-1 text-3xl font-bold tabular-nums">
         {Math.round(totals.calories)}{" "}
         <span className="text-base font-medium" style={{ color: "var(--muted)" }}>
           {targets ? `/ ${targets.calories} kcal` : "kcal"}
@@ -66,24 +67,24 @@ export default function DailyTotalsCard({
         <MacroBar label="Carbs" actual={totals.carbs} target={targets?.carbs} />
         <MacroBar label="Fat" actual={totals.fat} target={targets?.fat} />
         <div>
-          <p className="text-base font-semibold">{Math.round(totals.fibre)}g</p>
+          <p className="text-base font-semibold tabular-nums">{Math.round(totals.fibre)}g</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Fibre</p>
         </div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3 text-center" style={{ borderColor: "var(--border)" }}>
         <div>
-          <p className="text-sm font-semibold">{Math.round(totals.sugar)}g</p>
+          <p className="text-sm font-semibold tabular-nums">{Math.round(totals.sugar)}g</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Sugar</p>
         </div>
         <div>
-          <p className="text-sm font-semibold">{Math.round(totals.saturatedFat)}g</p>
+          <p className="text-sm font-semibold tabular-nums">{Math.round(totals.saturatedFat)}g</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Sat Fat</p>
         </div>
         <div>
-          <p className="text-sm font-semibold">{Math.round(totals.sodium)}mg</p>
+          <p className="text-sm font-semibold tabular-nums">{Math.round(totals.sodium)}mg</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Sodium</p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

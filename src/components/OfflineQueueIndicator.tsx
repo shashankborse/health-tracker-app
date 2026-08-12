@@ -32,7 +32,7 @@ export default function OfflineQueueIndicator() {
   return (
     <div
       className="mx-4 mb-2 rounded-xl px-3 py-2 text-center text-xs font-medium"
-      style={{ backgroundColor: "color-mix(in srgb, #ff9500 15%, transparent)", color: "#ff9500" }}
+      style={{ backgroundColor: "color-mix(in srgb, var(--fuel) 15%, transparent)", color: "var(--fuel)" }}
     >
       {count} set{count === 1 ? "" : "s"} waiting to sync — will send automatically when back online
     </div>

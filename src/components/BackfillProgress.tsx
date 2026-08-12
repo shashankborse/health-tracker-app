@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Card from "./Card";
 
 const METRIC_LABELS: Record<string, string> = {
   steps: "steps",
@@ -55,7 +56,7 @@ export default function BackfillProgress({ initialStatus }: { initialStatus: str
   if (!running && !error) return null;
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       {error ? (
         <p className="text-sm font-medium" style={{ color: "var(--danger)" }}>
           Sync error: {error}
@@ -74,6 +75,6 @@ export default function BackfillProgress({ initialStatus }: { initialStatus: str
           <p className="text-sm font-medium">{label}</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

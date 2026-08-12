@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Card from "./Card";
 
 type Intensity = "rest" | "low" | "mod" | "high" | "peak";
 
@@ -13,9 +14,9 @@ const INTENSITY_LABELS: Record<Intensity, string> = {
 };
 const INTENSITY_COLORS: Record<Intensity, string> = {
   rest: "var(--muted)",
-  low: "#34c759",
+  low: "var(--recovery)",
   mod: "var(--accent)",
-  high: "#ff9500",
+  high: "var(--fuel)",
   peak: "var(--danger)",
 };
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -93,16 +94,27 @@ export default function TrainingCalendar({ dailyTonnageByDate }: { dailyTonnageB
       <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
         Training Calendar
       </p>
-      <button
-        onClick={() => {
-          setExpanded((v) => !v);
-          setViewedMonth(startOfMonth(today));
-        }}
-        className="text-sm font-medium"
-        style={{ color: "var(--accent)" }}
-      >
-        {expanded ? "Show week" : "Full month ›"}
-      </button>
+      <div className="flex gap-1 rounded-lg p-1" style={{ backgroundColor: "var(--surface-2)" }}>
+        {(["Week", "Month"] as const).map((label) => {
+          const isActive = expanded ? label === "Month" : label === "Week";
+          return (
+            <button
+              key={label}
+              onClick={() => {
+                setExpanded(label === "Month");
+                setViewedMonth(startOfMonth(today));
+              }}
+              className="rounded-md px-2.5 py-1 text-xs font-semibold active:opacity-70"
+              style={{
+                backgroundColor: isActive ? "var(--card)" : "transparent",
+                color: isActive ? "var(--foreground)" : "var(--muted)",
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -115,7 +127,7 @@ export default function TrainingCalendar({ dailyTonnageByDate }: { dailyTonnageB
     });
 
     return (
-      <div className="rounded-2xl bg-card p-4 shadow-sm">
+      <Card className="p-4">
         {header}
         <div className="mt-3 flex justify-between gap-1">
           {weekDates.map((date) => {
@@ -140,7 +152,7 @@ export default function TrainingCalendar({ dailyTonnageByDate }: { dailyTonnageB
             );
           })}
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -158,7 +170,7 @@ export default function TrainingCalendar({ dailyTonnageByDate }: { dailyTonnageB
   const canGoNext = !isSameMonth(viewedMonth, today);
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       {header}
 
       <div className="mt-2 flex items-center justify-between">
@@ -208,6 +220,6 @@ export default function TrainingCalendar({ dailyTonnageByDate }: { dailyTonnageB
       </div>
 
       {legend}
-    </div>
+    </Card>
   );
 }

@@ -4,6 +4,7 @@ import type { WeightEntry } from "@/lib/types";
 import WeightChart from "@/components/WeightChart";
 import WeightEntryForm from "@/components/WeightEntryForm";
 import EnableRemindersCard from "@/components/EnableRemindersCard";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function WeightPage() {
       <h1 className="text-3xl font-bold tracking-tight px-1">Weight</h1>
 
       {error && (
-        <p className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--danger)" }}>
+        <p className="rounded-[1.375rem] bg-card p-4 text-sm card-shadow" style={{ color: "var(--danger)" }}>
           Couldn&apos;t load entries: {error.message}
         </p>
       )}
@@ -41,7 +42,7 @@ export default async function WeightPage() {
 
       <Link
         href="/weight/measurements"
-        className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm active:opacity-70"
+        className="flex items-center justify-between rounded-[1.375rem] bg-card p-4 card-shadow active:opacity-70"
       >
         <div>
           <p className="text-base font-semibold">Weekly Measurements</p>
@@ -61,11 +62,11 @@ export default async function WeightPage() {
           History
         </h2>
         {entries.length === 0 ? (
-          <div className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+          <Card className="p-4 text-sm" style={{ color: "var(--muted)" }}>
             No entries yet.
-          </div>
+          </Card>
         ) : (
-          <div className="overflow-hidden rounded-2xl bg-card shadow-sm">
+          <Card>
             {entries.map((entry, i) => (
               <div
                 key={entry.id}
@@ -81,7 +82,7 @@ export default async function WeightPage() {
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-base font-semibold">{entry.weight_kg.toFixed(1)} kg</p>
+                  <p className="text-base font-semibold tabular-nums">{entry.weight_kg.toFixed(1)} kg</p>
                   {entry.body_fat_pct !== null && (
                     <p className="text-sm" style={{ color: "var(--muted)" }}>
                       {entry.body_fat_pct.toFixed(1)}% BF
@@ -90,7 +91,7 @@ export default async function WeightPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </Card>
         )}
       </section>
     </main>

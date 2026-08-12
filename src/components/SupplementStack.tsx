@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { postWithQueue, deleteLoggedSet } from "@/lib/offlineQueue";
 import { todayLocalISODate } from "@/lib/date";
+import Card from "./Card";
 
 type Timing = "am" | "pm" | "with_meal";
 
@@ -55,7 +56,7 @@ export default function SupplementStack() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
         Stack
       </p>
@@ -106,7 +107,7 @@ export default function SupplementStack() {
           + Add supplement
         </button>
       )}
-    </div>
+    </Card>
   );
 }
 

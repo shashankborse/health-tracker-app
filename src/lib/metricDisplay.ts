@@ -15,7 +15,7 @@ export const METRIC_DISPLAY: Record<
     unit: "steps",
     table: "daily_steps",
     valueColumn: "count",
-    color: "#34c759",
+    color: "var(--recovery)",
     description: "Total steps recorded each day via your Fitbit.",
   },
   resting_heart_rate: {
@@ -23,7 +23,7 @@ export const METRIC_DISPLAY: Record<
     unit: "bpm",
     table: "daily_resting_heart_rate",
     valueColumn: "beats_per_minute",
-    color: "#ff3b30",
+    color: "var(--destructive)",
     description: "Your heart rate while at rest — a key indicator of cardiovascular fitness and recovery.",
   },
   hrv: {
@@ -39,7 +39,7 @@ export const METRIC_DISPLAY: Record<
     unit: "breaths/min",
     table: "daily_respiratory_rate",
     valueColumn: "breaths_per_minute",
-    color: "#ff9500",
+    color: "var(--fuel)",
     description: "Average breaths per minute during your main sleep period.",
   },
   spo2: {
@@ -55,7 +55,7 @@ export const METRIC_DISPLAY: Record<
     unit: "°C",
     table: "daily_skin_temperature",
     valueColumn: "nightly_temperature_c",
-    color: "#af52de",
+    color: "var(--sleep)",
     description: "Nightly skin temperature relative to your 30-day baseline — deviations can signal illness, cycle changes, or strain.",
   },
 };

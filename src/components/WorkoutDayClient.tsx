@@ -6,6 +6,7 @@ import type { PlanDay, PlanExercise, ExerciseCategory, LogType } from "@/lib/typ
 import { todayLocalISODate } from "@/lib/date";
 import ExerciseCard from "./ExerciseCard";
 import RunLogger from "./RunLogger";
+import Card from "./Card";
 
 const CATEGORY_ORDER: ExerciseCategory[] = ["warmup", "main", "cooldown"];
 const CATEGORY_LABELS: Record<ExerciseCategory, string> = {
@@ -121,7 +122,7 @@ export default function WorkoutDayClient({
       {!editMode && exercises.some((e) => e.log_type === "main_lift") && (
         <Link
           href={`/workouts/${day.id}/session`}
-          className="rounded-2xl py-3 text-center text-base font-semibold text-white shadow-sm active:opacity-80"
+          className="rounded-[14px] py-3 text-center text-base font-semibold text-white card-shadow active:opacity-80"
           style={{ backgroundColor: "var(--accent)" }}
         >
           ▶ Start live session
@@ -129,15 +130,15 @@ export default function WorkoutDayClient({
       )}
 
       {day.description && (
-        <div className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+        <Card className="p-4 text-sm" style={{ color: "var(--muted)" }}>
           {day.description}
-        </div>
+        </Card>
       )}
 
       {day.day_type === "rest" && exercises.length === 0 && (
-        <div className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+        <Card className="p-4 text-sm" style={{ color: "var(--muted)" }}>
           Rest day — no logging needed.
-        </div>
+        </Card>
       )}
 
       {day.day_type === "running" && !editMode && (
@@ -233,7 +234,7 @@ function AddExerciseForm({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="flex flex-col gap-2 p-4">
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -306,6 +307,6 @@ function AddExerciseForm({
           {saving ? "Adding…" : "Add"}
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { todayLocalISODate } from "@/lib/date";
 import { NUTRIENT_TARGETS, SODIUM_CEILING_MG, FIBRE_TARGET_G, type NutrientDef } from "@/lib/nutrientTargets";
+import Card from "@/components/Card";
 
 // Sums straight off the raw `/api/nutrition/logs` response (already
 // `select("*, foods(*)")`) rather than the shared, deliberately-narrower
@@ -30,7 +31,7 @@ function NutrientRow({ def, actual }: { def: NutrientDef; actual: number }) {
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-medium">{def.label}</p>
         <p className="text-sm">
-          <span className="font-semibold">{displayActual}</span>
+          <span className="font-semibold tabular-nums">{displayActual}</span>
           <span style={{ color: "var(--muted)" }}>/{def.target} {def.unit}</span>
         </p>
       </div>
@@ -92,7 +93,7 @@ export default function NutrientsPage() {
       </p>
 
       {error && (
-        <p className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--danger)" }}>
+        <p className="rounded-[1.375rem] bg-card p-4 text-sm card-shadow" style={{ color: "var(--danger)" }}>
           Couldn&apos;t load today&apos;s nutrients.
         </p>
       )}
@@ -101,58 +102,58 @@ export default function NutrientsPage() {
         <p className="px-1 text-sm" style={{ color: "var(--muted)" }}>Loading…</p>
       ) : (
         <>
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
                 Daily coverage
               </p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>{met}/{NUTRIENT_TARGETS.length} met</p>
             </div>
-            <p className="mt-1 text-3xl font-bold">{completePct}%</p>
+            <p className="mt-1 text-3xl font-bold tabular-nums">{completePct}%</p>
             <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
               {short.length > 0
                 ? `Still short on ${short.join(", ")}.`
                 : "All tracked vitamin and mineral targets met today."}
             </p>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <p className="mb-1 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Vitamins</p>
             <div className="divide-y" style={{ borderColor: "var(--border)" }}>
               {actuals.filter((a) => a.def.group === "vitamin").map(({ def, actual }) => (
                 <NutrientRow key={def.label} def={def} actual={actual} />
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <p className="mb-1 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Minerals & electrolytes</p>
             <div className="divide-y" style={{ borderColor: "var(--border)" }}>
               {actuals.filter((a) => a.def.group === "mineral").map(({ def, actual }) => (
                 <NutrientRow key={def.label} def={def} actual={actual} />
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Gut health</p>
             <div className="flex items-baseline justify-between">
               <p className="text-sm font-medium">Fibre</p>
               <p className="text-sm">
-                <span className="font-semibold">{Math.round(fibre)}</span>
+                <span className="font-semibold tabular-nums">{Math.round(fibre)}</span>
                 <span style={{ color: "var(--muted)" }}>/{FIBRE_TARGET_G}g</span>
               </p>
             </div>
             <div className="mt-1 flex items-baseline justify-between">
               <p className="text-sm font-medium">Sodium</p>
               <p className="text-sm">
-                <span className="font-semibold" style={{ color: sodium > SODIUM_CEILING_MG ? "var(--danger)" : undefined }}>
+                <span className="font-semibold tabular-nums" style={{ color: sodium > SODIUM_CEILING_MG ? "var(--danger)" : undefined }}>
                   {Math.round(sodium)}
                 </span>
                 <span style={{ color: "var(--muted)" }}>/{SODIUM_CEILING_MG}mg ceiling</span>
               </p>
             </div>
-          </div>
+          </Card>
         </>
       )}
     </main>

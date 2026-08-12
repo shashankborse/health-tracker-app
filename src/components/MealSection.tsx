@@ -247,7 +247,7 @@ export default function MealSection({
             height={22}
             fill="none"
             stroke="var(--accent)"
-            strokeWidth={1.8}
+            strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{ opacity: swipeProgress, transform: `scale(${0.7 + swipeProgress * 0.3})` }}

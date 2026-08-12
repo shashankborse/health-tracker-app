@@ -8,6 +8,7 @@ import MetricTrendCard from "@/components/MetricTrendCard";
 import SleepSessionsList from "@/components/SleepSessionsList";
 import ReadinessCard from "@/components/ReadinessCard";
 import SleepReadinessScatter, { type SleepReadinessPoint } from "@/components/SleepReadinessScatter";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -144,7 +145,7 @@ export default async function HealthPage({
 
       {connection ? (
         <>
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-base font-semibold">Connected</p>
               <DisconnectGoogleHealthButton />
@@ -152,13 +153,13 @@ export default async function HealthPage({
             <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
               Since {new Date(connection.connected_at).toLocaleDateString("en-IE", { day: "numeric", month: "long", year: "numeric" })}
             </p>
-          </div>
+          </Card>
 
           <BackfillProgress initialStatus={connection.backfill_status} />
 
           {readiness && <ReadinessCard readiness={readiness} href="/health/readiness" />}
 
-          <div className="rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="p-4">
             <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
               Sleep vs. Next-Day Readiness
             </p>
@@ -166,20 +167,20 @@ export default async function HealthPage({
             <div className="mt-2">
               <SleepReadinessScatter points={sleepReadinessPoints} />
             </div>
-          </div>
+          </Card>
 
           <MetricTrendCard
             title="Steps"
             unit="steps"
             points={steps.map((s) => ({ date: s.entry_date, value: s.count }))}
-            color="#34c759"
+            color="var(--recovery)"
             href="/health/steps"
           />
           <MetricTrendCard
             title="Resting heart rate"
             unit="bpm"
             points={restingHeartRate.map((r) => ({ date: r.entry_date, value: r.beats_per_minute }))}
-            color="#ff3b30"
+            color="var(--destructive)"
             href="/health/resting_heart_rate"
           />
           <MetricTrendCard
@@ -194,7 +195,7 @@ export default async function HealthPage({
             title="Respiratory rate"
             unit="br/min"
             points={respiratoryRate.map((r) => ({ date: r.entry_date, value: r.breaths_per_minute }))}
-            color="#ff9500"
+            color="var(--fuel)"
             href="/health/respiratory_rate"
           />
           <MetricTrendCard
@@ -208,13 +209,13 @@ export default async function HealthPage({
             title="Skin temperature"
             unit="°C"
             points={skinTemperature.map((t) => ({ date: t.entry_date, value: t.nightly_temperature_c }))}
-            color="#af52de"
+            color="var(--sleep)"
             href="/health/skin_temperature"
           />
           <SleepSessionsList sessions={sleepSessions} />
         </>
       ) : (
-        <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-sm">
+        <Card className="flex flex-col gap-3 p-5">
           <p className="text-base font-semibold">Connect Google Health</p>
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             Syncs steps, resting heart rate, HRV, respiratory rate, skin
@@ -223,16 +224,16 @@ export default async function HealthPage({
           </p>
           <a
             href="/api/google-health/connect"
-            className="mt-1 rounded-xl py-3 text-center text-base font-semibold text-white active:opacity-80"
+            className="mt-1 rounded-[14px] py-3 text-center text-base font-semibold text-white active:opacity-80"
             style={{ backgroundColor: "var(--accent)" }}
           >
             Connect Google Health
           </a>
-        </div>
+        </Card>
       )}
 
       {driveConnection ? (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
             <p className="text-base font-semibold">Google Drive Connected</p>
             <DisconnectGoogleDriveButton />
@@ -245,9 +246,9 @@ export default async function HealthPage({
               year: "numeric",
             })}
           </p>
-        </div>
+        </Card>
       ) : (
-        <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-sm">
+        <Card className="flex flex-col gap-3 p-5">
           <p className="text-base font-semibold">Connect Google Drive</p>
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             Needed for progress photos, exercise recordings, and database
@@ -256,12 +257,12 @@ export default async function HealthPage({
           </p>
           <a
             href="/api/google-drive/connect"
-            className="mt-1 rounded-xl py-3 text-center text-base font-semibold text-white active:opacity-80"
+            className="mt-1 rounded-[14px] py-3 text-center text-base font-semibold text-white active:opacity-80"
             style={{ backgroundColor: "var(--accent)" }}
           >
             Connect Google Drive
           </a>
-        </div>
+        </Card>
       )}
     </main>
   );

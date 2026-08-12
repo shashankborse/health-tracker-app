@@ -133,7 +133,7 @@ export default function NutritionPage() {
       <h1 className="text-3xl font-bold tracking-tight px-1">Nutrition</h1>
 
       {error && (
-        <p className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--danger)" }}>
+        <p className="rounded-[1.375rem] bg-card p-4 text-sm card-shadow" style={{ color: "var(--danger)" }}>
           Couldn&apos;t load today&apos;s log.
         </p>
       )}

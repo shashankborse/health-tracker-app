@@ -1,5 +1,6 @@
 import Link from "next/link";
 import InteractiveTrendChart, { type TrendPoint } from "./InteractiveTrendChart";
+import Card from "./Card";
 
 export default function MetricTrendCard({
   title,
@@ -17,7 +18,7 @@ export default function MetricTrendCard({
   if (points.length < 2) return null;
 
   const card = (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-semibold">{title}</p>
         {href && (
@@ -27,7 +28,7 @@ export default function MetricTrendCard({
         )}
       </div>
       <InteractiveTrendChart points={points} unit={unit} color={color} />
-    </div>
+    </Card>
   );
 
   return href ? (

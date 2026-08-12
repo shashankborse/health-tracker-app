@@ -7,6 +7,7 @@ import VideoModal from "./VideoModal";
 import LogDataPanel from "./LogDataPanel";
 import ViewProgressModal from "./ViewProgressModal";
 import RecordExerciseModal from "./RecordExerciseModal";
+import Card from "./Card";
 
 function formatTarget(pe: PlanExercise): string {
   if (pe.log_type === "main_lift") {
@@ -55,7 +56,7 @@ export default function ExerciseCard({
   const exercise = planExercise.exercises;
 
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <div className="flex gap-3">
         <button
           onClick={() => (exercise.video_url ? setShowVideo(true) : editMode && setEditing(true))}
@@ -67,7 +68,7 @@ export default function ExerciseCard({
               <path d="M8 5v14l11-7z" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="var(--muted)" strokeWidth={1.6}>
+            <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="var(--muted)" strokeWidth={2}>
               <path d="M15 10l5-3v10l-5-3M4 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z" />
             </svg>
           )}
@@ -203,7 +204,7 @@ export default function ExerciseCard({
           onSaved={() => {}}
         />
       )}
-    </div>
+    </Card>
   );
 }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { postWithQueue } from "@/lib/offlineQueue";
+import Card from "./Card";
 
 export default function RunLogger({
   ensureSessionId,
@@ -47,7 +48,7 @@ export default function RunLogger({
 
   if (saved) {
     return (
-      <div className="rounded-2xl bg-card p-4 text-center shadow-sm">
+      <Card className="p-4 text-center">
         <p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
           Run logged ✓
         </p>
@@ -56,7 +57,7 @@ export default function RunLogger({
             🏃 Moved to Phase {newPhaseNumber}
           </p>
         )}
-      </div>
+      </Card>
     );
   }
 
@@ -64,7 +65,7 @@ export default function RunLogger({
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="rounded-2xl py-3.5 text-base font-semibold text-white shadow-sm active:opacity-80"
+        className="rounded-[14px] py-3.5 text-base font-semibold text-white card-shadow active:opacity-80"
         style={{ backgroundColor: "var(--accent)" }}
       >
         + Log run
@@ -73,7 +74,7 @@ export default function RunLogger({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="flex flex-col gap-3 p-4">
       {error && (
         <p className="text-center text-sm font-medium" style={{ color: "var(--danger)" }}>
           {error}
@@ -123,12 +124,12 @@ export default function RunLogger({
         <button
           onClick={handleConfirm}
           disabled={saving}
-          className="flex-1 rounded-xl py-2.5 text-base font-semibold text-white disabled:opacity-50"
+          className="flex-1 rounded-[14px] py-2.5 text-base font-semibold text-white disabled:opacity-50"
           style={{ backgroundColor: "var(--accent)" }}
         >
           {saving ? "Saving…" : "Save"}
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

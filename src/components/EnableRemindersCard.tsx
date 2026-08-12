@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Card from "./Card";
 
 type Status = "checking" | "unsupported" | "denied" | "off" | "on";
 
@@ -82,7 +83,7 @@ export default function EnableRemindersCard() {
   if (status === "checking" || status === "unsupported") return null;
 
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="flex items-center justify-between p-4">
       <div>
         <p className="text-base font-semibold">Daily reminder</p>
         <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -97,7 +98,7 @@ export default function EnableRemindersCard() {
         <button
           onClick={status === "on" ? handleDisable : handleEnable}
           disabled={busy}
-          className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50"
+          className="shrink-0 rounded-[14px] px-4 py-2 text-sm font-semibold disabled:opacity-50"
           style={
             status === "on"
               ? { backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)" }
@@ -107,6 +108,6 @@ export default function EnableRemindersCard() {
           {status === "on" ? "Disable" : "Enable"}
         </button>
       )}
-    </div>
+    </Card>
   );
 }

@@ -1,3 +1,5 @@
+import Card from "./Card";
+
 const WIDTH = 320;
 const HEIGHT = 100;
 const PADDING = 16;
@@ -28,12 +30,12 @@ export default function MiniLineChart({
   const path = coords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 
   return (
-    <div className="rounded-2xl bg-card p-3 shadow-sm">
+    <Card className="p-3">
       <div className="mb-1 flex items-baseline justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
           {label}
         </span>
-        <span className="text-sm font-semibold">
+        <span className="text-sm font-semibold tabular-nums">
           {points[points.length - 1]} {unit}
         </span>
       </div>
@@ -43,6 +45,6 @@ export default function MiniLineChart({
           <circle key={i} cx={p.x} cy={p.y} r={i === coords.length - 1 ? 3 : 1.5} fill={color} />
         ))}
       </svg>
-    </div>
+    </Card>
   );
 }

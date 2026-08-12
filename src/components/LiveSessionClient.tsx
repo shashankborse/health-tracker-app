@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { PlanDay, PlanExercise } from "@/lib/types";
 import { todayLocalISODate } from "@/lib/date";
 import { postWithQueue, deleteLoggedSet } from "@/lib/offlineQueue";
+import Card from "./Card";
 
 function parseFirstNumber(text: string | null, fallback: number): number {
   if (!text) return fallback;
@@ -181,31 +182,31 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-2xl bg-card p-3 text-center shadow-sm">
+        <Card className="p-3 text-center">
           <p className="text-xl font-bold tabular-nums">{formatElapsed(elapsed)}</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Elapsed</p>
-        </div>
-        <div className="rounded-2xl bg-card p-3 text-center shadow-sm">
+        </Card>
+        <Card className="p-3 text-center">
           <p className="text-xl font-bold tabular-nums">{totalConfirmedSets}/{totalTargetSets}</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Sets</p>
-        </div>
-        <div className="rounded-2xl bg-card p-3 text-center shadow-sm">
+        </Card>
+        <Card className="p-3 text-center">
           <p className="text-xl font-bold tabular-nums">{Math.round(totalVolume).toLocaleString()}</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Volume (kg)</p>
-        </div>
+        </Card>
       </div>
 
       {!loaded ? (
         <p className="px-1 text-sm" style={{ color: "var(--muted)" }}>Loading…</p>
       ) : states.length === 0 ? (
-        <p className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+        <p className="rounded-[1.375rem] bg-card p-4 text-sm card-shadow" style={{ color: "var(--muted)" }}>
           No weighted exercises on this day.
         </p>
       ) : (
         states.map((s, i) => {
           const totalSets = s.planExercise.target_sets ?? 3;
           return (
-            <div key={s.planExercise.id} className="rounded-2xl bg-card p-4 shadow-sm">
+            <Card key={s.planExercise.id} className="p-4">
               <p className="text-base font-semibold">{s.planExercise.exercises.name}</p>
               <p className="text-sm" style={{ color: "var(--accent)" }}>
                 Target {totalSets} × {s.planExercise.target_reps ?? "?"}
@@ -226,7 +227,7 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
                           📈 {c.overloadSuggestion.nextWeightKg}kg
                         </span>
                       )}
-                      <span className="font-medium">{c.weight}kg × {c.reps}</span>
+                      <span className="font-medium tabular-nums">{c.weight}kg × {c.reps}</span>
                       <span style={{ color: "var(--accent)" }}>✓</span>
                       <button onClick={() => handleRemove(i, c.clientId)} style={{ color: "var(--danger)" }} aria-label={`Remove set ${setIdx + 1}`}>
                         ×
@@ -294,14 +295,14 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           );
         })
       )}
 
       <button
         onClick={() => router.push(`/workouts/${day.id}`)}
-        className="mt-2 rounded-2xl py-3.5 text-base font-semibold text-white shadow-sm active:opacity-80"
+        className="mt-2 rounded-[14px] py-3.5 text-base font-semibold text-white card-shadow active:opacity-80"
         style={{ backgroundColor: "var(--accent)" }}
       >
         Finish session

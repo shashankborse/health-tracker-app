@@ -174,7 +174,7 @@ export default function FoodSearchModal({
                 className="rounded-xl border px-3"
                 style={{ borderColor: "var(--border)" }}
               >
-                <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="var(--accent)" strokeWidth={1.6} strokeLinecap="round">
+                <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinecap="round">
                   <path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2M7 8v8M10 8v8M13 8v8M16 8v8" />
                 </svg>
               </button>
@@ -210,7 +210,7 @@ export default function FoodSearchModal({
                       height={20}
                       fill={r.isFavourite ? "var(--accent)" : "none"}
                       stroke="var(--accent)"
-                      strokeWidth={1.6}
+                      strokeWidth={2}
                     >
                       <path d="M12 17.3l-6.2 3.6 1.6-7-5.4-4.7 7.2-.6L12 2l2.8 6.6 7.2.6-5.4 4.7 1.6 7z" />
                     </svg>

@@ -71,7 +71,7 @@ export default function WeeklyMeasurementForm() {
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="w-full rounded-2xl py-3.5 text-base font-semibold text-white shadow-sm active:opacity-80"
+        className="w-full rounded-[14px] py-3.5 text-base font-semibold text-white card-shadow active:opacity-80"
         style={{ backgroundColor: "var(--accent)" }}
       >
         + Log weekly measurements
@@ -80,7 +80,7 @@ export default function WeeklyMeasurementForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-2xl bg-card p-4 shadow-sm">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-[1.375rem] bg-card p-4 card-shadow">
       {error && (
         <p
           className="rounded-xl px-3 py-2 text-sm font-medium"
@@ -172,7 +172,7 @@ export default function WeeklyMeasurementForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="flex-1 rounded-xl py-2.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-50"
+          className="flex-1 rounded-[14px] py-2.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-50"
           style={{ backgroundColor: "var(--accent)" }}
         >
           {submitting ? "Saving…" : "Save"}

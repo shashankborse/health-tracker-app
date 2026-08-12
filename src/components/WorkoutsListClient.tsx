@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
 import TrainingCalendar from "./TrainingCalendar";
+import Card from "./Card";
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
   strength: "Strength",
@@ -13,8 +14,8 @@ const DAY_TYPE_LABELS: Record<DayType, string> = {
 };
 const DAY_TYPE_COLORS: Record<DayType, string> = {
   strength: "var(--accent)",
-  running: "#34c759",
-  active_recovery: "#ff9500",
+  running: "var(--recovery)",
+  active_recovery: "var(--fuel)",
   rest: "var(--muted)",
 };
 
@@ -115,12 +116,12 @@ export default function WorkoutsListClient({
       <TrainingCalendar dailyTonnageByDate={dailyTonnageByDate} />
 
       {weeklyTonnageKg > 0 && (
-        <Link href="/workouts/training-load" className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm active:opacity-70">
+        <Link href="/workouts/training-load" className="flex items-center justify-between rounded-[1.375rem] bg-card p-4 card-shadow active:opacity-70">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
               Training Load
             </p>
-            <p className="mt-1 text-2xl font-bold">
+            <p className="mt-1 text-2xl font-bold tabular-nums">
               {Math.round(weeklyTonnageKg).toLocaleString()}
               <span className="ml-1 text-sm font-medium" style={{ color: "var(--muted)" }}>kg this week</span>
             </p>
@@ -136,9 +137,9 @@ export default function WorkoutsListClient({
           const count = exerciseCounts[day.id] ?? 0;
           const isToday = day.day_of_week === todayDayOfWeek;
           const card = (
-            <div
-              className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm"
-              style={isToday ? { boxShadow: "0 0 0 1.5px var(--accent)" } : undefined}
+            <Card
+              className="flex items-center gap-3 p-4"
+              style={isToday ? { boxShadow: "0 0 0 1.5px var(--accent), var(--shadow-card)" } : undefined}
             >
               <span
                 className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
@@ -186,7 +187,7 @@ export default function WorkoutsListClient({
                     </button>
                   </div>
                   <button onClick={() => handleDelete(day)}>
-                    <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="var(--danger)" strokeWidth={1.8}>
+                    <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="var(--danger)" strokeWidth={2}>
                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13" />
                     </svg>
                   </button>
@@ -196,7 +197,7 @@ export default function WorkoutsListClient({
                   <path d="M9 6l6 6-6 6" />
                 </svg>
               )}
-            </div>
+            </Card>
           );
 
           return editMode ? (
@@ -211,7 +212,7 @@ export default function WorkoutsListClient({
 
       {editMode &&
         (adding ? (
-          <div className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-sm">
+          <Card className="flex flex-col gap-2 p-4">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
@@ -232,7 +233,7 @@ export default function WorkoutsListClient({
                 Add
               </button>
             </div>
-          </div>
+          </Card>
         ) : (
           <button
             onClick={() => setAdding(true)}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import MetricTrendCard from "@/components/MetricTrendCard";
 import WeeklyMeasurementForm from "@/components/WeeklyMeasurementForm";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -83,13 +84,13 @@ export default async function WeeklyMeasurementsPage() {
           History
         </h2>
         {measurements.length === 0 ? (
-          <div className="rounded-2xl bg-card p-4 text-sm shadow-sm" style={{ color: "var(--muted)" }}>
+          <Card className="p-4 text-sm" style={{ color: "var(--muted)" }}>
             No entries yet.
-          </div>
+          </Card>
         ) : (
           <div className="flex flex-col gap-3">
             {measurements.map((m) => (
-              <div key={m.id} className="rounded-2xl bg-card p-4 shadow-sm">
+              <Card key={m.id} className="p-4">
                 <p className="text-base font-semibold">{formatWeek(m.week_date)}</p>
                 <div className="mt-2 grid grid-cols-3 gap-y-1 text-sm">
                   {m.arm_cm != null && <p>Arm: {m.arm_cm} cm</p>}
@@ -119,7 +120,7 @@ export default async function WeeklyMeasurementsPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}

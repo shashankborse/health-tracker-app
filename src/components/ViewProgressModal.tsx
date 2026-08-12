@@ -114,8 +114,8 @@ export default function ViewProgressModal({
         {!error && logs !== null && logs.length > 0 && (
           <div className="mb-4 flex flex-col gap-3">
             <MiniLineChart label="Reps" unit="reps" points={repsSeries} />
-            <MiniLineChart label="Weight" unit="kg" points={weightSeries} color="#34c759" />
-            <MiniLineChart label="Duration" unit="s" points={durationSeries} color="#ff9500" />
+            <MiniLineChart label="Weight" unit="kg" points={weightSeries} color="var(--recovery)" />
+            <MiniLineChart label="Duration" unit="s" points={durationSeries} color="var(--fuel)" />
           </div>
         )}
 

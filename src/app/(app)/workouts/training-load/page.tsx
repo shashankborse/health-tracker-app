@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import { getWeeklyTrainingLoad } from "@/lib/trainingLoad";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -52,18 +53,18 @@ export default async function TrainingLoadPage() {
         <h1 className="text-2xl font-bold tracking-tight">Training Load</h1>
       </div>
 
-      <div className="rounded-2xl bg-card p-4 shadow-sm">
+      <Card className="p-4">
         <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
           This week
         </p>
-        <p className="mt-1 text-3xl font-bold">
+        <p className="mt-1 text-3xl font-bold tabular-nums">
           {Math.round(totalKg).toLocaleString()}
           <span className="ml-1 text-base font-medium" style={{ color: "var(--muted)" }}>kg</span>
         </p>
-      </div>
+      </Card>
 
       {muscleGroupVolume.length > 0 && (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
+        <Card className="p-4">
           <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             By body part
           </p>
@@ -75,7 +76,7 @@ export default async function TrainingLoadPage() {
                 <div key={m.muscleGroup}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium">{MUSCLE_GROUP_LABELS[m.muscleGroup] ?? m.muscleGroup}</span>
-                    <span style={{ color: "var(--muted)" }}>
+                    <span className="tabular-nums" style={{ color: "var(--muted)" }}>
                       {Math.round(m.tonnageKg).toLocaleString()}kg ({pct}%)
                     </span>
                   </div>
@@ -86,7 +87,7 @@ export default async function TrainingLoadPage() {
                     {m.exercises.map((e) => (
                       <div key={e.name} className="flex items-center justify-between text-xs" style={{ color: "var(--muted)" }}>
                         <span>{e.name}</span>
-                        <span>{Math.round(e.tonnageKg).toLocaleString()}kg</span>
+                        <span className="tabular-nums">{Math.round(e.tonnageKg).toLocaleString()}kg</span>
                       </div>
                     ))}
                   </div>
@@ -94,11 +95,11 @@ export default async function TrainingLoadPage() {
               );
             })}
           </div>
-        </div>
+        </Card>
       )}
 
       {personalRecords.length > 0 && (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
+        <Card className="p-4">
           <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             Personal Records
           </p>
@@ -108,11 +109,11 @@ export default async function TrainingLoadPage() {
                 <span className="font-medium">{r.exercises.name}</span>
                 <span className="flex items-center gap-2">
                   {r.previous_best_weight_kg != null && (
-                    <span className="text-xs" style={{ color: "var(--accent)" }}>
+                    <span className="text-xs tabular-nums" style={{ color: "var(--accent)" }}>
                       +{Math.round((r.best_weight_kg - r.previous_best_weight_kg) * 10) / 10}kg
                     </span>
                   )}
-                  <span className="font-semibold">
+                  <span className="font-semibold tabular-nums">
                     {r.best_weight_kg}kg × {r.best_reps_at_weight}
                   </span>
                   <span style={{ color: "var(--muted)" }}>{formatShortDate(r.achieved_date)}</span>
@@ -120,7 +121,7 @@ export default async function TrainingLoadPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </main>
   );

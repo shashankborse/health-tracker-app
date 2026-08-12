@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <form
         action={`/api/login${from}`}
         method="POST"
-        className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-sm"
+        className="w-full max-w-sm rounded-[1.375rem] bg-card p-8 card-shadow"
       >
         <h1 className="mb-1 text-2xl font-bold tracking-tight">
           Health Tracker
@@ -51,7 +51,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <button
           type="submit"
-          className="w-full rounded-xl px-3 py-3 text-base font-semibold text-white active:opacity-80"
+          className="w-full rounded-[14px] px-3 py-3 text-base font-semibold text-white active:opacity-80"
           style={{ backgroundColor: "var(--accent)" }}
         >
           Log in

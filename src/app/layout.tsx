@@ -26,7 +26,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#007aff",
+  // Next's viewport.themeColor accepts a light/dark pair, not just a
+  // literal string — a plain "#007aff" would never adapt for dark mode,
+  // since meta[name=theme-color] can't reference a CSS var().
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#007aff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a84ff" },
+  ],
 };
 
 export default function RootLayout({

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import InteractiveTrendChart from "@/components/InteractiveTrendChart";
 import { METRIC_DISPLAY, type MetricKey } from "@/lib/metricDisplay";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,9 @@ export default async function MetricDetailPage({
         {config.description}
       </p>
 
-      <div className="rounded-2xl bg-card p-4 shadow-sm">
+      <Card className="p-4">
         <div className="mb-2 flex items-baseline justify-between">
-          <span className="text-2xl font-bold tracking-tight">
+          <span className="text-2xl font-bold tracking-tight tabular-nums">
             {latest != null ? `${round1(latest)} ${config.unit}` : "No data yet"}
           </span>
           {points.length > 0 && (
@@ -71,7 +72,7 @@ export default async function MetricDetailPage({
             Not enough data yet.
           </p>
         )}
-      </div>
+      </Card>
 
       {values.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
@@ -86,11 +87,11 @@ export default async function MetricDetailPage({
 
 function StatCard({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
-    <div className="rounded-2xl bg-card p-3 text-center shadow-sm">
-      <p className="text-lg font-bold tracking-tight">{value}</p>
+    <Card className="p-3 text-center">
+      <p className="text-lg font-bold tracking-tight tabular-nums">{value}</p>
       <p className="text-xs" style={{ color: "var(--muted)" }}>
         {label} ({unit})
       </p>
-    </div>
+    </Card>
   );
 }

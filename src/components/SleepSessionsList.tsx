@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Card from "./Card";
 
 type SleepSession = {
   id: string;
@@ -19,7 +20,7 @@ function formatMinutes(min: number | null): string {
 export default function SleepSessionsList({ sessions }: { sessions: SleepSession[] }) {
   if (!sessions.length) return null;
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <p className="mb-3 text-sm font-semibold">Sleep</p>
       <div className="flex flex-col gap-3">
         {sessions.map((s) => (
@@ -43,7 +44,7 @@ export default function SleepSessionsList({ sessions }: { sessions: SleepSession
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-base font-semibold">{formatMinutes(s.total_minutes)}</p>
+              <p className="text-base font-semibold tabular-nums">{formatMinutes(s.total_minutes)}</p>
               <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
               </svg>
@@ -51,6 +52,6 @@ export default function SleepSessionsList({ sessions }: { sessions: SleepSession
           </Link>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

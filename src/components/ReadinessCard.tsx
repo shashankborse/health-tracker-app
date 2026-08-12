@@ -1,15 +1,18 @@
 import Link from "next/link";
 import type { ReadinessResult } from "@/lib/readiness";
+import Card from "./Card";
 
 export const BAND_LABELS: Record<string, string> = {
   low: "Low",
   moderate: "Moderate",
   optimal: "Optimal",
 };
+// Same red/yellow/green convention as recovery scores elsewhere (WHOOP-
+// style low/medium/high), using the domain tokens so dark mode adapts.
 export const BAND_COLORS: Record<string, string> = {
-  low: "var(--danger)",
-  moderate: "#ff9500",
-  optimal: "#34c759",
+  low: "var(--destructive)",
+  moderate: "var(--warn)",
+  optimal: "var(--recovery)",
 };
 
 export function formatMinutes(minutes: number): string {
@@ -22,7 +25,7 @@ export default function ReadinessCard({ readiness, href }: { readiness: Readines
   const { score, band, provisional, components } = readiness;
 
   const card = (
-    <div className="rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
           Readiness
@@ -41,7 +44,7 @@ export default function ReadinessCard({ readiness, href }: { readiness: Readines
       ) : (
         <>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{score}</span>
+            <span className="text-3xl font-bold tabular-nums">{score}</span>
             <span className="text-sm font-semibold" style={{ color: band ? BAND_COLORS[band] : "var(--muted)" }}>
               {band ? BAND_LABELS[band] : ""}
             </span>
@@ -55,19 +58,19 @@ export default function ReadinessCard({ readiness, href }: { readiness: Readines
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs" style={{ color: "var(--muted)" }}>HRV</p>
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-semibold tabular-nums">
                 {components.hrv.value != null ? `${Math.round(components.hrv.value)}ms` : "—"}
               </p>
             </div>
             <div>
               <p className="text-xs" style={{ color: "var(--muted)" }}>Resting HR</p>
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-semibold tabular-nums">
                 {components.rhr.value != null ? `${Math.round(components.rhr.value)}bpm` : "—"}
               </p>
             </div>
             <div>
               <p className="text-xs" style={{ color: "var(--muted)" }}>Sleep</p>
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-semibold tabular-nums">
                 {components.sleep.value != null ? formatMinutes(components.sleep.value) : "—"}
                 {components.sleep.subscore != null && (
                   <span className="ml-1 font-normal" style={{ color: "var(--muted)" }}>
@@ -78,14 +81,14 @@ export default function ReadinessCard({ readiness, href }: { readiness: Readines
             </div>
             <div>
               <p className="text-xs" style={{ color: "var(--muted)" }}>Resp. rate</p>
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-semibold tabular-nums">
                 {components.resp.value != null ? `${components.resp.value.toFixed(1)}br/min` : "—"}
               </p>
             </div>
           </div>
         </>
       )}
-    </div>
+    </Card>
   );
 
   return href ? (

@@ -28,7 +28,7 @@ export default function ExportPage() {
             key={item.href}
             href={item.href}
             download
-            className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm active:opacity-70"
+            className="flex items-center justify-between rounded-[1.375rem] bg-card p-4 card-shadow active:opacity-70"
           >
             <div>
               <p className="text-base font-semibold">{item.title}</p>

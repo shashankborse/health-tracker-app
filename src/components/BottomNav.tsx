@@ -16,7 +16,7 @@ const strokeIcon = (path: string, active: boolean) => (
     height={26}
     fill="none"
     stroke={active ? "var(--accent)" : "var(--muted)"}
-    strokeWidth={1.8}
+    strokeWidth={2}
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden

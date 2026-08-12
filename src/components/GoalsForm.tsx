@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Card from "./Card";
 
 const ACTIVITY_OPTIONS = [
   { value: 1.2, label: "Sedentary", hint: "Desk job, little exercise" },
@@ -105,7 +106,7 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="flex w-full items-center justify-between rounded-2xl bg-card p-4 text-left shadow-sm"
+        className="flex w-full items-center justify-between rounded-[1.375rem] bg-card p-4 text-left card-shadow"
       >
         <span className="text-sm font-semibold">Goals & profile</span>
         <span className="text-sm" style={{ color: "var(--accent)" }}>
@@ -116,7 +117,7 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl bg-card p-4 shadow-sm">
+    <Card className="flex flex-col gap-4 p-4">
       <p className="text-sm font-semibold">Goals & profile</p>
 
       {error && (
@@ -234,12 +235,12 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
         <button
           onClick={handleSave}
           disabled={saving || !heightCm || !dob || !sex}
-          className="flex-1 rounded-xl py-2.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-50"
+          className="flex-1 rounded-[14px] py-2.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-50"
           style={{ backgroundColor: "var(--accent)" }}
         >
           {saving ? "Saving…" : "Save"}
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

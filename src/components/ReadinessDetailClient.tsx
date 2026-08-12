@@ -3,6 +3,7 @@
 import { useState } from "react";
 import InteractiveTrendChart from "./InteractiveTrendChart";
 import ReadinessCard from "./ReadinessCard";
+import Card from "./Card";
 import type { ReadinessResult } from "@/lib/readiness";
 
 type View = "day" | "week" | "month";
@@ -20,7 +21,7 @@ export default function ReadinessDetailClient({ series }: { series: ReadinessRes
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-1 rounded-xl p-1" style={{ backgroundColor: "color-mix(in srgb, var(--muted) 15%, transparent)" }}>
+      <div className="flex gap-1 rounded-xl p-1" style={{ backgroundColor: "var(--surface-2)" }}>
         {VIEWS.map((v) => (
           <button
             key={v}
@@ -39,7 +40,7 @@ export default function ReadinessDetailClient({ series }: { series: ReadinessRes
       {view === "day" ? (
         <ReadinessCard readiness={today} />
       ) : (
-        <div className="rounded-2xl bg-card p-4 shadow-sm">
+        <Card className="p-4">
           <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             {view === "week" ? "Last 7 days" : "Last 30 days"}
           </p>
@@ -50,7 +51,7 @@ export default function ReadinessDetailClient({ series }: { series: ReadinessRes
               Not enough data yet.
             </p>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

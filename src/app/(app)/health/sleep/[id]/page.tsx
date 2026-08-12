@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import Card from "@/components/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function SleepDetailPage({ params }: { params: Promise<{ id
         </h1>
       </div>
 
-      <div className="rounded-2xl bg-card p-4 shadow-sm">
+      <Card className="p-4">
         <div className="flex items-baseline justify-between">
           <span className="text-2xl font-bold tracking-tight">{formatMinutes(session.total_minutes)}</span>
           <span className="text-sm" style={{ color: "var(--muted)" }}>
@@ -108,7 +109,7 @@ export default async function SleepDetailPage({ params }: { params: Promise<{ id
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </main>
   );
 }

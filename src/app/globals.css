@@ -4,25 +4,51 @@
  * iOS-native palette: grouped-table-view background with cards floating on
  * top, system accent blue, and the native SF font stack (no webfont load —
  * this is meant to look like part of iOS, not a themed web page).
+ *
+ * Phase 7: domain colors (--recovery/--strain/--sleep/--fuel/--warn/
+ * --destructive) were added modeled on a reference app's palette, which
+ * itself turned out to closely match Apple's own HIG system colors at each
+ * mode's calibration — so these are literally Apple's systemGreen/Blue/
+ * Purple/Orange/Yellow/Red light+dark pairs, not invented values.
+ * --accent/--danger are kept as aliases of --strain/--destructive (which
+ * already equal their old literal values) so every existing
+ * `var(--accent)`/`var(--danger)` usage picks up the new system unchanged.
  */
 :root {
   --background: #f2f2f7; /* systemGroupedBackground */
   --card: #ffffff;
+  --surface-2: #e5e5ea; /* systemGray5 — lighter-than-card secondary elevation, used for segmented-control/bar tracks */
   --foreground: #000000;
   --muted: #8e8e93; /* systemGray */
+  --muted-foreground: var(--muted);
   --border: rgba(60, 60, 67, 0.29); /* separator */
-  --accent: #007aff; /* systemBlue */
-  --danger: #ff3b30; /* systemRed */
+  --strain: #007aff; /* systemBlue — training load domain color */
+  --recovery: #34c759; /* systemGreen */
+  --sleep: #af52de; /* systemPurple */
+  --fuel: #ff9500; /* systemOrange */
+  --warn: #ffcc00; /* systemYellow */
+  --destructive: #ff3b30; /* systemRed */
+  --accent: var(--strain);
+  --danger: var(--destructive);
+  --shadow-card: 0 1px 0 0 rgba(0, 0, 0, 0.04) inset, 0 8px 20px -14px rgba(0, 0, 0, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-card: var(--card);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-danger: var(--danger);
+  --color-strain: var(--strain);
+  --color-recovery: var(--recovery);
+  --color-sleep: var(--sleep);
+  --color-fuel: var(--fuel);
+  --color-warn: var(--warn);
+  --color-destructive: var(--destructive);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
     sans-serif;
 }
@@ -31,11 +57,20 @@
   :root {
     --background: #000000;
     --card: #1c1c1e;
+    --surface-2: #2c2c2e; /* systemGray5 dark — lighter than --card, unlike light mode where card (white) is the lightest tier */
     --foreground: #ffffff;
     --muted: #8e8e93;
+    --muted-foreground: var(--muted);
     --border: rgba(84, 84, 88, 0.65);
-    --accent: #0a84ff;
-    --danger: #ff453a;
+    --strain: #0a84ff;
+    --recovery: #30d158;
+    --sleep: #bf5af2;
+    --fuel: #ff9f0a;
+    --warn: #ffd60a;
+    --destructive: #ff453a;
+    --accent: var(--strain);
+    --danger: var(--destructive);
+    --shadow-card: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 10px 30px -18px rgba(0, 0, 0, 0.9);
   }
 }
 
@@ -62,6 +97,32 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Phase 7: the two-layer "premium card" shadow — an inset top highlight
+   (simulates light catching a slightly-raised surface) plus a soft,
+   tightly-pulled ambient drop shadow. Values are mode-aware via
+   --shadow-card since a white-on-white inset highlight would be invisible
+   on a light card. Pairs with Card.tsx, which is the only place this
+   should be applied going forward. */
+.card-shadow {
+  box-shadow: var(--shadow-card);
+}
+
+/* Phase 7: card mount animation — applied deliberately per-card as screens
+   are touched during the Phase 7 pass, not blanket-applied everywhere. */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-enter {
+  animation: card-enter 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 .safe-bottom {

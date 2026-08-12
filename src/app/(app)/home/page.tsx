@@ -56,7 +56,7 @@ export default function Home() {
           <Link
             key={section.href}
             href={section.href}
-            className="flex items-center gap-4 rounded-2xl bg-card p-4 shadow-sm active:opacity-70"
+            className="flex items-center gap-4 rounded-[1.375rem] bg-card p-4 card-shadow active:opacity-70"
           >
             <div
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
@@ -68,7 +68,7 @@ export default function Home() {
                 height={22}
                 fill="none"
                 stroke="var(--accent)"
-                strokeWidth={1.8}
+                strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
