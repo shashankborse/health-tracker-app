@@ -1,6 +1,7 @@
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import type { PlanDay } from "@/lib/types";
 import { getWeeklyTrainingLoad } from "@/lib/trainingLoad";
+import { getMainExercisesByDay } from "@/lib/mainExercisesByDay";
 import WorkoutsListClient from "@/components/WorkoutsListClient";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +23,10 @@ export default async function WorkoutsPage() {
     countByDay.set(row.plan_day_id, (countByDay.get(row.plan_day_id) ?? 0) + 1);
   }
 
-  // Dashboard only needs the weekly total for the compact card — the full
-  // day-chart/muscle-group breakdown lives on /workouts/training-load.
-  const { totalKg: weeklyTonnageKg } = await getWeeklyTrainingLoad(supabase);
+  // Dashboard needs the 7-day bar chart; the fuller muscle-group
+  // breakdown still lives on /workouts/training-load.
+  const { dailyTonnage } = await getWeeklyTrainingLoad(supabase);
+  const mainExercisesByDay = await getMainExercisesByDay(supabase);
 
   // Unbounded by date (all history) — powers the training calendar's
   // month-grid, which can navigate to any past month client-side without
@@ -47,8 +49,9 @@ export default async function WorkoutsPage() {
     <WorkoutsListClient
       initialDays={(days ?? []) as PlanDay[]}
       exerciseCounts={Object.fromEntries(countByDay)}
-      weeklyTonnageKg={weeklyTonnageKg}
+      dailyTonnage={dailyTonnage}
       dailyTonnageByDate={Object.fromEntries(dailyTonnageMap)}
+      mainExercisesByDay={mainExercisesByDay}
     />
   );
 }

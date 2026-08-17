@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { DayType, PlanDay } from "@/lib/types";
+import type { MainExerciseRow } from "@/lib/mainExercisesByDay";
 import Card from "./Card";
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
@@ -9,13 +10,6 @@ const DAY_TYPE_LABELS: Record<DayType, string> = {
   running: "Running",
   active_recovery: "Active Recovery",
   rest: "Rest",
-};
-
-export type MainExerciseRow = {
-  target_sets: number | null;
-  target_reps: string | null;
-  target_weight_kg: number | null;
-  exercises: { name: string } | null;
 };
 
 export default function TodaysSessionCard({

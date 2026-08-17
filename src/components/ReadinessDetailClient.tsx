@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import InteractiveTrendChart from "./InteractiveTrendChart";
+import ReadinessTrendChart from "./ReadinessTrendChart";
 import ReadinessCard from "./ReadinessCard";
 import Card from "./Card";
 import type { ReadinessResult } from "@/lib/readiness";
@@ -45,7 +45,7 @@ export default function ReadinessDetailClient({ series }: { series: ReadinessRes
             {view === "week" ? "Last 7 days" : "Last 30 days"}
           </p>
           {(view === "week" ? weekPoints : monthPoints).length >= 2 ? (
-            <InteractiveTrendChart points={view === "week" ? weekPoints : monthPoints} unit="" color="var(--accent)" height={180} />
+            <ReadinessTrendChart points={view === "week" ? weekPoints : monthPoints} height={220} />
           ) : (
             <p className="py-6 text-center text-sm" style={{ color: "var(--muted)" }}>
               Not enough data yet.

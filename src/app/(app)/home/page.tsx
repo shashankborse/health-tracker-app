@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import { getReadinessForDate, addDaysISO, type ReadinessBand } from "@/lib/readiness";
 import { getWeeklyTrainingLoad } from "@/lib/trainingLoad";
+import { getMainExercisesByDay } from "@/lib/mainExercisesByDay";
 import { todayLocalISODate } from "@/lib/date";
 import type { PlanDay } from "@/lib/types";
 import { BAND_COLORS, formatMinutes } from "@/components/ReadinessCard";
@@ -9,7 +10,7 @@ import Card from "@/components/Card";
 import ProgressRing from "@/components/ProgressRing";
 import MiniBar from "@/components/MiniBar";
 import HomeFuelingSummary from "@/components/HomeFuelingSummary";
-import TodaysSessionCard, { type MainExerciseRow } from "@/components/TodaysSessionCard";
+import TodaysSessionCard from "@/components/TodaysSessionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -93,13 +94,9 @@ export default async function Home() {
     }
   }
 
-  const [{ data: days }, { data: mainExercises }, { data: exerciseLogs }, { data: runLogs }] = await Promise.all([
+  const [{ data: days }, mainExercisesByDay, { data: exerciseLogs }, { data: runLogs }] = await Promise.all([
     supabase.from("plan_days").select("*").order("sort_order", { ascending: true }),
-    supabase
-      .from("plan_exercises")
-      .select("plan_day_id, target_sets, target_reps, target_weight_kg, exercises(name)")
-      .eq("category", "main")
-      .order("sort_order", { ascending: true }),
+    getMainExercisesByDay(supabase),
     supabase
       .from("exercise_logs")
       .select("session_id, weight_kg, actual_reps, workout_sessions(session_date, plan_days(name))")
@@ -109,11 +106,6 @@ export default async function Home() {
       .from("run_logs")
       .select("session_id, distance_km, duration_seconds, workout_sessions(session_date, plan_days(name))"),
   ]);
-
-  const mainExercisesByDay: Record<string, MainExerciseRow[]> = {};
-  for (const row of (mainExercises ?? []) as unknown as (MainExerciseRow & { plan_day_id: string })[]) {
-    (mainExercisesByDay[row.plan_day_id] ??= []).push(row);
-  }
 
   const strengthBySession = new Map<string, { date: string; name: string; sets: number; tonnageKg: number }>();
   for (const log of (exerciseLogs ?? []) as unknown as ExerciseLogRow[]) {

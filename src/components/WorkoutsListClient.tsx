@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PlanDay, DayType } from "@/lib/types";
+import type { DailyTonnage } from "@/lib/trainingLoad";
+import type { MainExerciseRow } from "@/lib/mainExercisesByDay";
 import TrainingCalendar from "./TrainingCalendar";
+import WeeklyLoadChart from "./WeeklyLoadChart";
+import TodaysSessionCard from "./TodaysSessionCard";
 import Card from "./Card";
 
 const DAY_TYPE_LABELS: Record<DayType, string> = {
@@ -22,13 +26,15 @@ const DAY_TYPE_COLORS: Record<DayType, string> = {
 export default function WorkoutsListClient({
   initialDays,
   exerciseCounts,
-  weeklyTonnageKg,
+  dailyTonnage,
   dailyTonnageByDate,
+  mainExercisesByDay,
 }: {
   initialDays: PlanDay[];
   exerciseCounts: Record<string, number>;
-  weeklyTonnageKg: number;
+  dailyTonnage: DailyTonnage[];
   dailyTonnageByDate: Record<string, number>;
+  mainExercisesByDay: Record<string, MainExerciseRow[]>;
 }) {
   const [days, setDays] = useState(initialDays);
   const [editMode, setEditMode] = useState(false);
@@ -113,24 +119,11 @@ export default function WorkoutsListClient({
         </button>
       </div>
 
+      <WeeklyLoadChart dailyTonnage={dailyTonnage} />
+
       <TrainingCalendar dailyTonnageByDate={dailyTonnageByDate} />
 
-      {weeklyTonnageKg > 0 && (
-        <Link href="/workouts/training-load" className="flex items-center justify-between rounded-[1.375rem] bg-card p-4 card-shadow active:opacity-70">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-              Training Load
-            </p>
-            <p className="mt-1 text-2xl font-bold tabular-nums">
-              {Math.round(weeklyTonnageKg).toLocaleString()}
-              <span className="ml-1 text-sm font-medium" style={{ color: "var(--muted)" }}>kg this week</span>
-            </p>
-          </div>
-          <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="var(--muted)" strokeWidth={2}>
-            <path d="M9 6l6 6-6 6" />
-          </svg>
-        </Link>
-      )}
+      <TodaysSessionCard days={sorted} mainExercisesByDay={mainExercisesByDay} />
 
       <div className="flex flex-col gap-3">
         {sorted.map((day, i) => {

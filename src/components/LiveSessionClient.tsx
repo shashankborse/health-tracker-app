@@ -6,6 +6,7 @@ import type { PlanDay, PlanExercise } from "@/lib/types";
 import { todayLocalISODate } from "@/lib/date";
 import { postWithQueue, deleteLoggedSet } from "@/lib/offlineQueue";
 import Card from "./Card";
+import ViewProgressModal from "./ViewProgressModal";
 
 function parseFirstNumber(text: string | null, fallback: number): number {
   if (!text) return fallback;
@@ -46,7 +47,9 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [progressIndex, setProgressIndex] = useState<number | null>(null);
   const [states, setStates] = useState<ExerciseState[]>(() =>
     exercises.map((pe) => ({
       planExercise: pe,
@@ -59,11 +62,14 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
 
   // Elapsed timer since this screen was opened — not persisted across a
   // reload; a live-workout aid, not a record of true session start time.
+  // Plain per-second increment (rather than Date-math against a fixed
+  // start) so pausing is just "stop the interval" — no elapsed/paused
+  // interaction to get wrong.
   useEffect(() => {
-    const start = Date.now();
-    const interval = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    if (paused) return;
+    const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [paused]);
 
   // Get-or-create today's session (same cache-key convention as
   // WorkoutDayClient's ensureSessionId), then pre-populate from whatever's
@@ -181,9 +187,11 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <Card className="p-3 text-center">
-          <p className="text-xl font-bold tabular-nums">{formatElapsed(elapsed)}</p>
+          <p className="text-xl font-bold tabular-nums" style={{ color: paused ? "var(--muted)" : undefined }}>
+            {formatElapsed(elapsed)}
+          </p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Elapsed</p>
         </Card>
         <Card className="p-3 text-center">
@@ -194,6 +202,13 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
           <p className="text-xl font-bold tabular-nums">{Math.round(totalVolume).toLocaleString()}</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>Volume (kg)</p>
         </Card>
+        <button
+          onClick={() => setPaused((p) => !p)}
+          className="overflow-hidden rounded-[1.375rem] bg-card card-shadow p-3 text-center active:opacity-70"
+        >
+          <p className="text-xl font-bold" style={{ color: "var(--accent)" }}>{paused ? "▶" : "❙❙"}</p>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>{paused ? "Resume" : "Pause"}</p>
+        </button>
       </div>
 
       {!loaded ? (
@@ -207,7 +222,12 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
           const totalSets = s.planExercise.target_sets ?? 3;
           return (
             <Card key={s.planExercise.id} className="p-4">
-              <p className="text-base font-semibold">{s.planExercise.exercises.name}</p>
+              <div className="flex items-baseline justify-between">
+                <p className="text-base font-semibold">{s.planExercise.exercises.name}</p>
+                <button onClick={() => setProgressIndex(i)} className="text-sm font-medium" style={{ color: "var(--recovery)" }}>
+                  Progress ›
+                </button>
+              </div>
               <p className="text-sm" style={{ color: "var(--accent)" }}>
                 Target {totalSets} × {s.planExercise.target_reps ?? "?"}
               </p>
@@ -307,6 +327,15 @@ export default function LiveSessionClient({ day, exercises }: { day: PlanDay; ex
       >
         Finish session
       </button>
+
+      {progressIndex != null && (
+        <ViewProgressModal
+          exerciseId={states[progressIndex].planExercise.exercise_id}
+          planExerciseId={states[progressIndex].planExercise.id}
+          exerciseName={states[progressIndex].planExercise.exercises.name}
+          onClose={() => setProgressIndex(null)}
+        />
+      )}
     </main>
   );
 }
