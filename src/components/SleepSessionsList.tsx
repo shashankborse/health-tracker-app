@@ -21,7 +21,12 @@ export default function SleepSessionsList({ sessions }: { sessions: SleepSession
   if (!sessions.length) return null;
   return (
     <Card className="p-4">
-      <p className="mb-3 text-sm font-semibold">Sleep</p>
+      <div className="mb-3 flex items-baseline justify-between">
+        <p className="text-sm font-semibold">Sleep</p>
+        <Link href="/health/sleep" className="text-sm font-medium" style={{ color: "var(--sleep)" }}>
+          See all ›
+        </Link>
+      </div>
       <div className="flex flex-col gap-3">
         {sessions.map((s) => (
           <Link

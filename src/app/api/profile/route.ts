@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { height_cm, date_of_birth, biological_sex, activity_multiplier, fitness_goal, meal_distribution } = body;
+  const { height_cm, date_of_birth, biological_sex, activity_multiplier, fitness_goal, meal_distribution, sleep_goal_minutes } = body;
 
   const update: Record<string, unknown> = { id: "default", updated_at: new Date().toISOString() };
 
@@ -62,6 +62,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "meal_distribution must be 2_meal or 4_meal." }, { status: 400 });
     }
     update.meal_distribution = meal_distribution;
+  }
+  if (sleep_goal_minutes !== undefined) {
+    if (sleep_goal_minutes === null) {
+      update.sleep_goal_minutes = null;
+    } else {
+      const n = Number(sleep_goal_minutes);
+      if (!Number.isFinite(n) || n < 180 || n > 720) {
+        return NextResponse.json({ error: "sleep_goal_minutes must be a number between 180 and 720." }, { status: 400 });
+      }
+      update.sleep_goal_minutes = n;
+    }
   }
 
   const supabase = getSupabaseServerClient();

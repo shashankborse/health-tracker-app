@@ -2,7 +2,7 @@ import { getSupabaseServerClient } from "./supabaseServer";
 
 export type ReadinessBand = "low" | "moderate" | "optimal";
 
-export type ReadinessComponent = { value: number | null; subscore: number | null };
+export type ReadinessComponent = { value: number | null; subscore: number | null; baselineMean: number | null };
 
 export type ReadinessResult = {
   date: string;
@@ -177,10 +177,10 @@ function computeForDate(
     band: score != null ? bandFor(score) : null,
     provisional: bestCoverage < MIN_BASELINE_SAMPLES,
     components: {
-      hrv: { value: hrvToday, subscore: hrvSub },
-      rhr: { value: rhrToday, subscore: rhrSub },
-      sleep: { value: sleepToday, subscore: sleepSub },
-      resp: { value: respToday, subscore: respSub },
+      hrv: { value: hrvToday, subscore: hrvSub, baselineMean: hrvBaseline.length ? mean(hrvBaseline) : null },
+      rhr: { value: rhrToday, subscore: rhrSub, baselineMean: rhrBaseline.length ? mean(rhrBaseline) : null },
+      sleep: { value: sleepToday, subscore: sleepSub, baselineMean: sleepBaseline.length ? mean(sleepBaseline) : null },
+      resp: { value: respToday, subscore: respSub, baselineMean: respBaseline.length ? mean(respBaseline) : null },
     },
   };
 }

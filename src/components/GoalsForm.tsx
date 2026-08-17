@@ -29,6 +29,7 @@ type Profile = {
   activity_multiplier: number;
   fitness_goal: "fat_loss" | "maintenance" | "muscle_gain";
   meal_distribution: "2_meal" | "4_meal";
+  sleep_goal_minutes: number | null;
 };
 
 const SEGMENTED_BUTTON = "flex-1 rounded-xl px-3 py-2.5 text-sm font-medium text-center";
@@ -51,6 +52,7 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
   const [activityMultiplier, setActivityMultiplier] = useState(1.375);
   const [fitnessGoal, setFitnessGoal] = useState<Profile["fitness_goal"]>("maintenance");
   const [mealDistribution, setMealDistribution] = useState<Profile["meal_distribution"]>("4_meal");
+  const [sleepGoalHours, setSleepGoalHours] = useState("");
 
   useEffect(() => {
     fetch("/api/profile")
@@ -64,6 +66,7 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
           setActivityMultiplier(p.activity_multiplier);
           setFitnessGoal(p.fitness_goal);
           setMealDistribution(p.meal_distribution);
+          setSleepGoalHours(p.sleep_goal_minutes != null ? String(p.sleep_goal_minutes / 60) : "");
         }
         // Prompt to complete setup automatically if it's genuinely incomplete.
         if (!p?.height_cm || !p?.date_of_birth || !p?.biological_sex) setExpanded(true);
@@ -85,6 +88,7 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
         activity_multiplier: activityMultiplier,
         fitness_goal: fitnessGoal,
         meal_distribution: mealDistribution,
+        sleep_goal_minutes: sleepGoalHours ? Math.round(Number(sleepGoalHours) * 60) : null,
       }),
     });
 
@@ -222,6 +226,20 @@ export default function GoalsForm({ onSaved }: { onSaved: () => void }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Sleep goal (hours)</label>
+        <input
+          type="number"
+          inputMode="decimal"
+          step="0.5"
+          placeholder="e.g. 8"
+          value={sleepGoalHours}
+          onChange={(e) => setSleepGoalHours(e.target.value)}
+          className="w-full rounded-xl border px-3 py-2.5 text-base outline-none"
+          style={{ borderColor: "var(--border)" }}
+        />
       </div>
 
       <div className="mt-1 flex gap-2">

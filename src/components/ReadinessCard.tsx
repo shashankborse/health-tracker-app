@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReadinessResult } from "@/lib/readiness";
 import Card from "./Card";
+import ProgressRing from "./ProgressRing";
+import MiniBar from "./MiniBar";
 
 export const BAND_LABELS: Record<string, string> = {
   low: "Low",
@@ -43,49 +45,57 @@ export default function ReadinessCard({ readiness, href }: { readiness: Readines
         </p>
       ) : (
         <>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tabular-nums">{score}</span>
-            <span className="text-sm font-semibold" style={{ color: band ? BAND_COLORS[band] : "var(--muted)" }}>
-              {band ? BAND_LABELS[band] : ""}
-            </span>
+          <div className="mt-3 flex items-center gap-5">
+            <ProgressRing pct={score} size={104} strokeWidth={11} color={BAND_COLORS[band!]}>
+              <span className="text-2xl font-bold tabular-nums">{score}</span>
+              <span className="text-xs font-semibold" style={{ color: BAND_COLORS[band!] }}>
+                {BAND_LABELS[band!]}
+              </span>
+            </ProgressRing>
+            <div className="flex flex-1 flex-col gap-2.5">
+              <div>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span style={{ color: "var(--muted)" }}>HRV</span>
+                  <span className="font-semibold tabular-nums">
+                    {components.hrv.value != null ? `${Math.round(components.hrv.value)}ms` : "—"}
+                  </span>
+                </div>
+                <MiniBar pct={components.hrv.subscore ?? 0} color="var(--recovery)" />
+              </div>
+              <div>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span style={{ color: "var(--muted)" }}>Resting HR</span>
+                  <span className="font-semibold tabular-nums">
+                    {components.rhr.value != null ? `${Math.round(components.rhr.value)}bpm` : "—"}
+                  </span>
+                </div>
+                <MiniBar pct={components.rhr.subscore ?? 0} color="var(--strain)" />
+              </div>
+              <div>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span style={{ color: "var(--muted)" }}>Sleep</span>
+                  <span className="font-semibold tabular-nums">
+                    {components.sleep.value != null ? formatMinutes(components.sleep.value) : "—"}
+                  </span>
+                </div>
+                <MiniBar pct={components.sleep.subscore ?? 0} color="var(--sleep)" />
+              </div>
+              <div>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span style={{ color: "var(--muted)" }}>Resp. rate</span>
+                  <span className="font-semibold tabular-nums">
+                    {components.resp.value != null ? `${components.resp.value.toFixed(1)}br/min` : "—"}
+                  </span>
+                </div>
+                <MiniBar pct={components.resp.subscore ?? 0} color="var(--fuel)" />
+              </div>
+            </div>
           </div>
           {provisional && (
-            <p className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
+            <p className="mt-3 text-xs" style={{ color: "var(--muted)" }}>
               Provisional — still building your 30-day baseline.
             </p>
           )}
-
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>HRV</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {components.hrv.value != null ? `${Math.round(components.hrv.value)}ms` : "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>Resting HR</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {components.rhr.value != null ? `${Math.round(components.rhr.value)}bpm` : "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>Sleep</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {components.sleep.value != null ? formatMinutes(components.sleep.value) : "—"}
-                {components.sleep.subscore != null && (
-                  <span className="ml-1 font-normal" style={{ color: "var(--muted)" }}>
-                    · {Math.round(components.sleep.subscore)} vs. your avg
-                  </span>
-                )}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>Resp. rate</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {components.resp.value != null ? `${components.resp.value.toFixed(1)}br/min` : "—"}
-              </p>
-            </div>
-          </div>
         </>
       )}
     </Card>
